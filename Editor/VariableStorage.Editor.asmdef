@@ -1,0 +1,14 @@
+{
+    "name": "VariableStorage.Editor",
+    "rootNamespace": "Damdor.VariableStorage.Editor",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
