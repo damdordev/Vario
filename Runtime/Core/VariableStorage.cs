@@ -6,9 +6,15 @@ using UnityEngine;
 namespace Damdor.VariableStorage
 {
     [Serializable]
-    public class VariableStorage : IVariableStorage
+    public class VariableStorage
     {
-        [SerializeReference] private List<Variable> variables = new();
+        public static IEnumerable<Type> SupportedTypes => supportedTypes.Values;
+
+        [SerializeReference] private List<Variable> variables = new()
+        {
+            new IntVariable { Name = "intv", Value = 5 },
+            new FloatVariable { Name = "floatv", Value = 10.1f },
+        };
         
         public bool Contains<T>(string name)
             => variables.Any(v => v.Name == name && v.Type == typeof(T));
