@@ -7,27 +7,57 @@ namespace Damdor.VariableStorage
     public abstract class Variable
     {
         public abstract Type Type { get; }
+        public abstract string Name { get; set; }
+    }
 
-        public string Name
+    [Serializable]
+    public abstract class TypedVariable<T> : Variable
+    {
+        public override Type Type => typeof(T);
+        public abstract T Value { get; set; }
+    }
+
+    [Serializable]
+    public class Variable<T> : TypedVariable<T>
+    {
+        public override Type Type => typeof(T);
+
+        public override T Value
+        {
+            get => value;
+            set => this.value = value;
+        }
+        
+        public override string Name
         {
             get => name;
             set => name = value;
         }
 
+        [SerializeField] private T value;
         [SerializeField] private string name;
     }
-
+    
     [Serializable]
-    public class Variable<T> : Variable
+    public abstract class Variable<T, TSerialize> : TypedVariable<T>
     {
-        public override Type Type => typeof(T);
-
-        public T Value
+        public override T Value
         {
-            get => value;
-            set => this.value = value;
+            get => Convert(value);
+            set => this.value = Convert(value);
+        }
+        
+        public override string Name
+        {
+            get => name;
+            set => name = value;
         }
 
-        [SerializeField] private T value;
+        protected abstract T Convert(TSerialize value);
+        protected abstract TSerialize Convert(T value);
+
+        [SerializeField] private TSerialize value;
+        [SerializeField] private string name;
     }
+    
 }

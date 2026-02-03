@@ -17,7 +17,7 @@ namespace Damdor.VariableStorage
         {
             foreach (var variable in variables)
             {
-                if(variable.Name == name && variable is Variable<T> variableT) return  variableT.Value;
+                if(variable.Name == name && variable is TypedVariable<T> variableT) return  variableT.Value;
             }
 
             return default;
@@ -27,7 +27,7 @@ namespace Damdor.VariableStorage
         {
             foreach (var variable in variables)
             {
-                if (variable.Name == name && variable is Variable<T> variableT)
+                if (variable.Name == name && variable is TypedVariable<T> variableT)
                 {
                     variableT.Value = value;
                     return;
@@ -36,7 +36,7 @@ namespace Damdor.VariableStorage
 
             if (!supportedTypes.TryGetValue(typeof(T), out var variableType)) return;
             
-            var newVariable = (Variable<T>) Activator.CreateInstance(variableType);
+            var newVariable = (TypedVariable<T>) Activator.CreateInstance(variableType);
             newVariable.Name = name;
             newVariable.Value = value;
             variables.Add(newVariable);
