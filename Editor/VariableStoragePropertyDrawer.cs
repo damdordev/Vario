@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -9,7 +10,11 @@ namespace Damdor.VariableStorage.Editor
     [CustomPropertyDrawer(typeof(VariableStorage))]
     public class VariableStoragePropertyDrawer : PropertyDrawer
     {
+        private readonly float VariableTypeLength = 80f;
+        private readonly float Spacing = 10f;
+        
         private readonly Dictionary<string, ReorderableList> propertyPathToReorderableList = new();
+        private readonly Dictionary<Type, string> variableTypeToName = new();
         
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -44,13 +49,26 @@ namespace Damdor.VariableStorage.Editor
             
             reorderableList.drawHeaderCallback += rect =>
             {
-                EditorGUI.LabelField(rect, property.displayName);
+                EditorGUI.LabelField(
+                    rect,
+                    property.displayName
+                );
             };
 
             reorderableList.drawElementCallback += (rect, index, _, _) =>
             {
+                var variable = (Variable) property.GetArrayElementAtIndex(index).managedReferenceValue;
+
+                var wasEnabled = GUI.enabled;
+                GUI.enabled = false;
+                EditorGUI.TextField(
+                    new Rect(rect.x, rect.y, VariableTypeLength, EditorGUIUtility.singleLineHeight),
+                    GetTypeName(variable.GetType())
+                );
+                GUI.enabled = wasEnabled;
+                
                 EditorGUI.PropertyField(
-                    rect,
+                    new Rect(rect.x + VariableTypeLength + Spacing, rect.y, rect.width - VariableTypeLength - Spacing, rect.height),
                     property.GetArrayElementAtIndex(index),
                     GUIContent.none
                 );
@@ -61,7 +79,7 @@ namespace Damdor.VariableStorage.Editor
                 var menu = new GenericMenu();
                 foreach (var type in VariableStorage.SupportedTypes)
                 {
-                    menu.AddItem(new GUIContent(type.Name), false, () =>
+                    menu.AddItem(new GUIContent(GetTypeName(type)), false, () =>
                     {
                         property.InsertArrayElementAtIndex(property.arraySize);
                         var element = property.GetArrayElementAtIndex(property.arraySize - 1);
@@ -74,6 +92,17 @@ namespace Damdor.VariableStorage.Editor
             
             propertyPathToReorderableList.Add(path, reorderableList);
             return reorderableList;
+        }
+
+        private string GetTypeName(Type type)
+        {
+            if(variableTypeToName.TryGetValue(type, out var result)) return result;
+
+            var attr = type.GetCustomAttribute<VariableTypeName>();
+            var name = attr != null ? attr.Name : type.Name;
+            variableTypeToName[type] = name;
+
+            return name;
         }
         
     }
