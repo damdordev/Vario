@@ -1,7 +1,9 @@
 {
     "name": "VariableStorage",
     "rootNamespace": "Damdor.VariableStorage",
-    "references": [],
+    "references": [
+        "GUID:27e601c55f5bb36b785408d5c9f7d3b1"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
@@ -9,6 +11,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.damdor.foundation",
+            "expression": "",
+            "define": "DAMDOR_FOUNDATION"
+        }
+    ],
     "noEngineReferences": false
 }

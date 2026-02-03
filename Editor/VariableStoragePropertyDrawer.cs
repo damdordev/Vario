@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEditor;
 using UnityEditorInternal;
@@ -77,7 +78,7 @@ namespace Damdor.VariableStorage.Editor
             reorderableList.onAddDropdownCallback += (_, _) =>
             {
                 var menu = new GenericMenu();
-                foreach (var type in VariableStorage.SupportedTypes)
+                foreach (var type in VariableStorage.SupportedTypes.OrderBy(GetTypeName))
                 {
                     menu.AddItem(new GUIContent(GetTypeName(type)), false, () =>
                     {

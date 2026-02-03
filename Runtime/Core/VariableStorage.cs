@@ -73,8 +73,30 @@ namespace Damdor.VariableStorage
 
         private static Dictionary<Type, Type> supportedTypes = new()
         {
+            { typeof(bool), typeof(BoolVariable) },
             { typeof(int), typeof(IntVariable) },
-            { typeof(float), typeof(FloatVariable) }
+            { typeof(float), typeof(FloatVariable) },
+            { typeof(string), typeof(StringVariable) },
+            { typeof(Color), typeof(ColorVariable) },
+            { typeof(Vector2), typeof(Vector2Variable) },
+            { typeof(Vector3), typeof(Vector3Variable) },
+            { typeof(GameObject), typeof(GameObjectVariable) },
+            { typeof(Rect), typeof(RectVariable) },
+            { typeof(AnimationCurve),  typeof(AnimationCurveVariable) },
+            { typeof(AudioClip), typeof(AudioClipVariable) },
+            { typeof(Material), typeof(MaterialVariable) },
+            { typeof(Shader), typeof(ShaderVariable) },
+            { typeof(Mesh), typeof(MeshVariable) },
+            { typeof(Texture), typeof(TextureVariable) },
+            { typeof(Sprite), typeof(SpriteVariable) },
+            { typeof(TextAsset), typeof(TextAssetVariable) },
+            { typeof(LayerMask), typeof(LayerMaskVariable) },
+            
+            #if DAMDOR_FOUNDATION
+            { typeof(DateTime), typeof(DateTimeVariable) },
+            { typeof(TimeSpan), typeof(TimeSpanVariable) },
+            #endif
+            
         };
 
         public static void RegisterVariableType<TVariable, T>() where TVariable : Variable<T>
