@@ -1,0 +1,18 @@
+{
+  "name": "com.damdor.variablestorage",
+  "version": "1.0.0",
+  "displayName": "Variable storage",
+  "description": "",
+  "unity": "2022.3",
+  "publishConfig": {
+    "registry": "https://upm.pckgs.io"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/damdordev/VariableStorage.git"
+  },
+  "dependencies": {
+    "com.damdor.foundation": "1.0.0",
+    "com.cysharp.unitask.compatible": "2.3.1"    
+  }  
+}
