@@ -7,38 +7,51 @@ namespace Damdor.VariableStorage
     [Serializable]
     public class VariableStorage
     {
-        public static List<Type> SupportedTypes => supportedTypes;
-
         public List<Variable> Variables => variables;
         [SerializeReference] private List<Variable> variables = new();
 
-        private static List<Type> supportedTypes = new()
+        public T Evaluate<T>(string name, T defaultValue = default) => Evaluate<T>(name, null, defaultValue);
+        
+        public T Evaluate<T>(string name, VariableStorage parent, T defaultValue = default)
         {
-            typeof(BoolVariable),
-            typeof(IntVariable),
-            typeof(FloatVariable),
-            typeof(StringVariable),
-            typeof(ColorVariable),
-            typeof(Vector2Variable),
-            typeof(Vector3Variable),
-            typeof(GameObjectVariable),
-            typeof(RectVariable),
-            typeof(AnimationCurveVariable),
-            typeof(AudioClipVariable),
-            typeof(MaterialVariable),
-            typeof(ShaderVariable),
-            typeof(MeshVariable),
-            typeof(TextureVariable),
-            typeof(SpriteVariable),
-            typeof(TextAssetVariable),
-            typeof(LayerMaskVariable),
+            if(TryEvaluate<T>(variables, name, out var result)) return result;
+            if (parent != null && TryEvaluate(parent.variables, name, out result)) return result;
+            return defaultValue;
+        }
 
-#if DAMDOR_FOUNDATION
-            typeof(DateTimeVariable),
-            typeof(TimeSpanVariable),
-#endif
+        public T Evaluate<T>(StorageValue<T> value, T defaultValue = default) => Evaluate<T>(value, null, defaultValue);
 
+        public T Evaluate<T>(StorageValue<T> value, VariableStorage parent, T defaultValue = default) => value.Source switch
+        {
+            ValueSource.Raw => value.Value,
+            ValueSource.Storage => Evaluate(value.Name, parent, defaultValue),
+            _ => throw new ArgumentOutOfRangeException($"Unknown value source: {typeof(T).Name} ")
         };
+        
+        public T Evaluate<T, TSerializable>(StorageValue<T, TSerializable> value, T defaultValue = default)
+            => Evaluate(value, null, defaultValue);
+        
+        public T Evaluate<T, TSerializable>(StorageValue<T, TSerializable> value, VariableStorage parent, T defaultValue = default) => value.Source switch
+        {
+            ValueSource.Raw => value.Value,
+            ValueSource.Storage => Evaluate(value.Name, parent, defaultValue),
+            _ => throw new ArgumentOutOfRangeException($"Unknown value source: {typeof(T).Name} ")
+        };
+
+        private bool TryEvaluate<T>(List<Variable> variables, string name, out T value)
+        {
+            foreach (var variable in variables)
+            {
+                if (variable.Name == name && variable.Type == typeof(T) && variable is TypedVariable<T> typedVariable)
+                {
+                    value = typedVariable.Value;
+                    return true;
+                }
+            }
+
+            value = default;
+            return false;
+        }
 
     }
 }

@@ -43,8 +43,8 @@ namespace Damdor.VariableStorage
     {
         public override T Value
         {
-            get => Convert(value);
-            set => this.value = Convert(value);
+            get => VariableStorageSettings.FromSerializable<T, TSerialize>(value);
+            set => this.value = VariableStorageSettings.ToSerializable<T, TSerialize>(value);
         }
         
         public override string Name
@@ -52,9 +52,6 @@ namespace Damdor.VariableStorage
             get => name;
             set => name = value;
         }
-
-        protected abstract T Convert(TSerialize value);
-        protected abstract TSerialize Convert(T value);
 
         [SerializeField] private TSerialize value;
         [SerializeField] private string name;

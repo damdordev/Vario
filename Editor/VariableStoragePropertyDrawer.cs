@@ -78,7 +78,7 @@ namespace Damdor.VariableStorage.Editor
             reorderableList.onAddDropdownCallback += (_, _) =>
             {
                 var menu = new GenericMenu();
-                foreach (var type in VariableStorage.SupportedTypes.OrderBy(GetTypeName))
+                foreach (var type in VariableStorageSettings.SupportedTypes.OrderBy(GetTypeName))
                 {
                     menu.AddItem(new GUIContent(GetTypeName(type)), false, () =>
                     {
