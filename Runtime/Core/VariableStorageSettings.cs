@@ -45,6 +45,7 @@ namespace Damdor.VariableStorage
         /// </remarks>
         /// <example>
         /// <code>
+        /// <![CDATA[
         /// public class VariableStorageIntegration
         /// {
         ///    [UnityEditor.Callbacks.DidReloadScripts]
@@ -54,6 +55,7 @@ namespace Damdor.VariableStorage
         ///    }
         ///
         /// }
+        /// ]]>
         /// </code>
         /// </example>
         /// <typeparam name="T">The specific class deriving from <see cref="Variable"/> to register.</typeparam>
@@ -75,6 +77,7 @@ namespace Damdor.VariableStorage
         /// <param name="fromSerializable">A delegate that converts the serializable type <typeparamref name="TSerializable"/> back to <typeparamref name="T"/>.</param>
         /// /// <example>
         /// <code>
+        /// <![CDATA[
         /// public class VariableStorageIntegration
         /// {
         ///    // Unity cannot serialize this class. It can be a value from external library
@@ -119,6 +122,7 @@ namespace Damdor.VariableStorage
         ///        => new MyCustomVariable { Value = x.Value };        
         /// 
         /// }
+        /// ]]>
         /// </code>
         /// </example>
         public static void RegisterConverter<T, TSerializable>(

@@ -24,7 +24,7 @@ namespace Damdor.VariableStorage
         /// <param name="name">The unique identifier of the variable.</param>
         /// <param name="defaultValue">The value to return if the variable is not found.</param>
         /// <returns>The value of the variable if found; otherwise, <paramref name="defaultValue"/>.</returns>
-        public T Evaluate<T>(string name, T defaultValue = default) => Evaluate<T>(name, null, defaultValue);
+        public T Evaluate<T>(string name, T defaultValue = default) => Evaluate(name, null, defaultValue);
         
         /// <summary>
         /// Evaluates the value of a variable by name, optionally searching a parent storage.
@@ -36,6 +36,7 @@ namespace Damdor.VariableStorage
         /// <returns>The found value or the provided <paramref name="defaultValue"/>.</returns>
         public T Evaluate<T>(string name, VariableStorage parent, T defaultValue = default)
         {
+            // ReSharper disable once DuplicatedSequentialIfBodies
             if(TryEvaluate<T>(variables, name, out var result)) return result;
             if (parent != null && TryEvaluate(parent.variables, name, out result)) return result;
             return defaultValue;
@@ -51,7 +52,7 @@ namespace Damdor.VariableStorage
         /// If <see cref="StorageValue{T}.Source"/> is <c>Storage</c>, returns the value from storage; 
         /// otherwise, returns the value <see cref="StorageValue{T}.Value"/>.
         /// </returns>
-        public T Evaluate<T>(StorageValue<T> value, T defaultValue = default) => Evaluate<T>(value, null, defaultValue);
+        public T Evaluate<T>(StorageValue<T> value, T defaultValue = default) => Evaluate(value, null, defaultValue);
 
         /// <summary>
         /// Evaluates a <see cref="StorageValue{T}"/> to retrieve its final value based on its source.
@@ -160,11 +161,9 @@ namespace Damdor.VariableStorage
         {
             foreach (var variable in variables)
             {
-                if (variable.Name == name && variable.Type == typeof(T) && variable is TypedVariable<T> typedVariable)
-                {
-                    value = typedVariable.Value;
-                    return true;
-                }
+                if (variable.Name != name || variable.Type != typeof(T) || variable is not TypedVariable<T> typedVariable) continue;
+                value = typedVariable.Value;
+                return true;
             }
 
             value = default;

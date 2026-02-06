@@ -19,7 +19,7 @@ namespace Damdor.VariableStorage.Editor
             {
                 if (element.Contains("["))
                 {
-                    var name = element.Substring(0, element.IndexOf("[", StringComparison.Ordinal));
+                    var name = element[..element.IndexOf("[", StringComparison.Ordinal)];
                     var field = GetFieldRecursive(currentType, name);
                     if (field == null) return null;
             

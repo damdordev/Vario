@@ -84,6 +84,7 @@ namespace Damdor.VariableStorage
         /// Gets or sets the serializable representation of the value.
         /// </summary>
         /// <value>The data of type <typeparamref name="TSerializable"/> stored on disk or in scenes.</value>
+        // ReSharper disable once UnusedMember.Global
         public TSerializable SerializableValue
         {
             get => value;

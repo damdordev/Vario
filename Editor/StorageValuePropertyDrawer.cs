@@ -88,6 +88,8 @@ namespace Damdor.VariableStorage.Editor
                         }
                     }
                     break;
+                default:
+                    throw new ArgumentOutOfRangeException($"Wrong value source: {source}");
             }
 
             if (EditorGUI.EndChangeCheck())
@@ -104,17 +106,18 @@ namespace Damdor.VariableStorage.Editor
             valueProperty = property.FindPropertyRelative("value");
         }
 
-        private string[] GetVariables(SerializedProperty property)
+        private static string[] GetVariables(SerializedProperty property)
         {
             var storageSource = property.serializedObject.targetObject as IVariableStorageSource;
-            if (storageSource == null) return null;
-            var storage =  storageSource.Storage;
+            var storage = storageSource?.Storage;
             if (storage == null) return null;
             var type = property.GetPropertyType().GetGenericArguments()[0];
             var variables = storage.Variables.Where(t => t.Type == type).Select(v => v.Name);
 
+            // ReSharper disable once UseNegatedPatternMatching
+            // ReSharper disable once SuspiciousTypeConversion.Global
             var parentSource = property.serializedObject.targetObject as IParentVariableStorageSource;
-            if (parentSource == null || parentSource.ParentStorage == null) return variables.ToArray();
+            if (parentSource?.ParentStorage == null) return variables.ToArray();
             var parentVariables = parentSource.ParentStorage.Variables.Where(t => t.Type == type).Select(v => v.Name);
 
             return variables.Concat(parentVariables).Distinct().ToArray();
