@@ -14,7 +14,7 @@ namespace Damdor.VariableStorage
     /// </summary>
     /// <typeparam name="T">The exact type of the value.</typeparam>
     [Serializable]
-    public class StorageValue<T>
+    public struct StorageValue<T>
     {
         /// <summary>
         /// Gets or sets the source mode for this value
