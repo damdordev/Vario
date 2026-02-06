@@ -10,7 +10,7 @@ namespace Damdor.VariableStorage
     }
     
     [Serializable]
-    public struct StorageValue<T>
+    public class StorageValue<T>
     {
         public ValueSource Source
         {

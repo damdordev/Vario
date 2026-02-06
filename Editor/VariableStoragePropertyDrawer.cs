@@ -11,9 +11,9 @@ namespace Damdor.VariableStorage.Editor
     [CustomPropertyDrawer(typeof(VariableStorage))]
     public class VariableStoragePropertyDrawer : PropertyDrawer
     {
-        private readonly float VariableTypeLength = 80f;
-        private readonly float Spacing = 10f;
-        
+        private const float VariableTypeLength = 80f;
+        private const float Spacing = 10f;
+
         private readonly Dictionary<string, ReorderableList> propertyPathToReorderableList = new();
         private readonly Dictionary<Type, string> variableTypeToName = new();
         
@@ -75,20 +75,22 @@ namespace Damdor.VariableStorage.Editor
                 );
             };
 
-            reorderableList.onAddDropdownCallback += (_, _) =>
+            reorderableList.elementHeightCallback += index
+                => Mathf.Max(EditorGUIUtility.singleLineHeight, EditorGUI.GetPropertyHeight(property.GetArrayElementAtIndex(index), GUIContent.none));
+
+            reorderableList.onAddDropdownCallback += (rect, _) =>
             {
-                var menu = new GenericMenu();
-                foreach (var type in VariableStorageSettings.SupportedTypes.OrderBy(GetTypeName))
+                var types = VariableStorageSettings.SupportedTypes.OrderBy(GetTypeName).ToList();
+                var variables = types.Select(GetTypeName).ToArray();
+                new StringDropdown(variables, newChoice =>
                 {
-                    menu.AddItem(new GUIContent(GetTypeName(type)), false, () =>
-                    {
-                        property.InsertArrayElementAtIndex(property.arraySize);
-                        var element = property.GetArrayElementAtIndex(property.arraySize - 1);
-                        element.managedReferenceValue = Activator.CreateInstance(type);
-                        property.serializedObject.ApplyModifiedProperties();
-                    });
-                    menu.ShowAsContext();
-                }
+                    property.InsertArrayElementAtIndex(property.arraySize);
+                    var element = property.GetArrayElementAtIndex(property.arraySize - 1);
+                    var index = Array.FindIndex(variables, v => v == newChoice);
+                    var type = types[index];
+                    element.managedReferenceValue = Activator.CreateInstance(type);
+                    property.serializedObject.ApplyModifiedProperties();
+                }).Show(new Rect(rect.x - 100, rect.y, rect.width, rect.height));
             };
             
             propertyPathToReorderableList.Add(path, reorderableList);
