@@ -4,6 +4,9 @@ using Damdor.Foundation;
 
 namespace Damdor.VariableStorage
 {
+    /// <summary>
+    /// Provides global configuration and registry settings for the Variable Storage system.
+    /// </summary>
     public static class VariableStorageSettings
     {
         private class ConverterData
@@ -13,7 +16,12 @@ namespace Damdor.VariableStorage
             public Delegate ToSerializable;
             public Delegate FromSerializable;
         }
-
+        
+        /// <summary>
+        /// Gets a list of all <see cref="Type"/> objects currently supported and registered in the system.
+        /// If you need to add new supported type then use method <c>RegisterVariableType</c> 
+        /// </summary>
+        /// <value>A collection of types that can be handled by the storage system.</value>
         public static List<Type> SupportedTypes
         {
             get
@@ -28,6 +36,27 @@ namespace Damdor.VariableStorage
         private static readonly List<Type> supportedTypes = new();
         private static readonly List<ConverterData> converters = new();
 
+        /// <summary>
+        /// Registers a new variable type to be recognized by the storage system.
+        /// </summary>
+        /// <remarks>
+        /// The list is used only for creating a proper editor therefore new types should be created in editor script
+        /// in response from compilation.
+        /// </remarks>
+        /// <example>
+        /// <code>
+        /// public class VariableStorageIntegration
+        /// {
+        ///    [UnityEditor.Callbacks.DidReloadScripts]
+        ///    private static void OnScriptsReloaded()
+        ///    {
+        ///        VariableStorageSettings.RegisterVariableType<MyCustomVariableType>();
+        ///    }
+        ///
+        /// }
+        /// </code>
+        /// </example>
+        /// <typeparam name="T">The specific class deriving from <see cref="Variable"/> to register.</typeparam>
         public static void RegisterVariableType<T>() where T : Variable
         {
             EnsureInit();
@@ -35,6 +64,63 @@ namespace Damdor.VariableStorage
             supportedTypes.Add(typeof(T));
         }
 
+        /// <summary>
+        /// Registers a pair of conversion delegates to handle transformations between a runtime type 
+        /// and its serializable representation.
+        /// </summary>
+        /// <c>Converters are required both for creating a proper editor and in runtime</c>
+        /// <typeparam name="T">The runtime data type used in game logic.</typeparam>
+        /// <typeparam name="TSerializable">The data type used for serialization (e.g., a primitive or DTO).</typeparam>
+        /// <param name="toSerializable">A delegate that converts the runtime type <typeparamref name="T"/> to <typeparamref name="TSerializable"/>.</param>
+        /// <param name="fromSerializable">A delegate that converts the serializable type <typeparamref name="TSerializable"/> back to <typeparamref name="T"/>.</param>
+        /// /// <example>
+        /// <code>
+        /// public class VariableStorageIntegration
+        /// {
+        ///    // Unity cannot serialize this class. It can be a value from external library
+        ///    public class MyCustomVariable
+        ///    {
+        ///        public int value;
+        ///        // some big logic
+        ///    }
+        ///
+        ///    [Serializable]
+        ///    public class MyCustomSerializableVariable
+        ///    {
+        ///        public int value;
+        ///    }
+        /// 
+        ///    [UnityEditor.Callbacks.DidReloadScripts]
+        ///    private static void OnScriptsReloaded()
+        ///    {
+        ///        Init();
+        ///    }
+        ///
+        ///    public void StartGame()
+        ///    {
+        ///        Init();
+        ///    }
+        ///
+        ///    public void StopGame()
+        ///    {
+        ///        VariableStorageSettings.ResetToInitialSettings();
+        ///    }
+        ///
+        ///    public void Init()
+        ///    {
+        ///        VariableStorageSettings.RegisterVariableType<MyCustomVariable>();
+        ///        VariableStorageSettings.RegisterConverter<MyCustomVariable, MyCustomSerializableVariable>(Convert, Convert);
+        ///    }
+        ///
+        ///    private MyCustomSerializableVariable Convert(MyCustomVariable x)
+        ///        => new MyCustomSerializableVariable { Value = x.Value };
+        ///
+        ///    private MyCustomVariable Convert(MyCustomSerializableVariable x)
+        ///        => new MyCustomVariable { Value = x.Value };        
+        /// 
+        /// }
+        /// </code>
+        /// </example>
         public static void RegisterConverter<T, TSerializable>(
             Converter<T, TSerializable> toSerializable,
             Converter<TSerializable, T> fromSerializable)
@@ -43,6 +129,10 @@ namespace Damdor.VariableStorage
             DoRegisterConverter(toSerializable, fromSerializable);
         }
 
+        /// <summary>
+        /// Clears all custom registrations and restores the system to its original default state. This method should
+        /// be invoked before your game restarts if you register any custom types or converterss
+        /// </summary>
         public static void ResetToInitialSettings()
         {
             ResetSupportedTypes();

@@ -111,7 +111,13 @@ namespace Damdor.VariableStorage.Editor
             var storage =  storageSource.Storage;
             if (storage == null) return null;
             var type = property.GetPropertyType().GetGenericArguments()[0];
-            return storage.Variables.Where(t => t.Type == type).Select(v => v.Name).ToArray();
+            var variables = storage.Variables.Where(t => t.Type == type).Select(v => v.Name);
+
+            var parentSource = property.serializedObject.targetObject as IParentVariableStorageSource;
+            if (parentSource == null || parentSource.ParentStorage == null) return variables.ToArray();
+            var parentVariables = parentSource.ParentStorage.Variables.Where(t => t.Type == type).Select(v => v.Name);
+
+            return variables.Concat(parentVariables).Distinct().ToArray();
         }
 
     }
