@@ -22,7 +22,7 @@ namespace Damdor.VariableStorage
         /// If you need to add new supported type then use method <c>RegisterVariableType</c> 
         /// </summary>
         /// <value>A collection of types that can be handled by the storage system.</value>
-        public static List<Type> SupportedTypes
+        public static IReadOnlyList<Type> SupportedTypes
         {
             get
             {
