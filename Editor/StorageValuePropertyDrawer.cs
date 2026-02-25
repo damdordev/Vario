@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Damdor.Foundation.Editor;
 using UnityEditor;
 using UnityEngine;
 
@@ -80,7 +81,7 @@ namespace Damdor.VariableStorage.Editor
                         );
                         if (GUI.Button(rect, nameProperty.stringValue, EditorStyles.popup))
                         {
-                            new StringDropdown(variables, newChoice =>
+                            new HierarchicalDropdown<string>(variables, v => v, newChoice =>
                             {
                                 nameProperty.stringValue = newChoice;
                                 property.serializedObject.ApplyModifiedProperties();

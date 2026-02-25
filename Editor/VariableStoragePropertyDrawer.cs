@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Damdor.Foundation.Editor;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
@@ -81,13 +82,10 @@ namespace Damdor.VariableStorage.Editor
             reorderableList.onAddDropdownCallback += (rect, _) =>
             {
                 var types = VariableStorageSettings.SupportedTypes.OrderBy(GetTypeName).ToList();
-                var variables = types.Select(GetTypeName).ToArray();
-                new StringDropdown(variables, newChoice =>
+                new HierarchicalDropdown<Type>(types, GetTypeName, type =>
                 {
                     property.InsertArrayElementAtIndex(property.arraySize);
                     var element = property.GetArrayElementAtIndex(property.arraySize - 1);
-                    var index = Array.FindIndex(variables, v => v == newChoice);
-                    var type = types[index];
                     element.managedReferenceValue = Activator.CreateInstance(type);
                     property.serializedObject.ApplyModifiedProperties();
                 }).Show(new Rect(rect.x - 100, rect.y, rect.width, rect.height));
