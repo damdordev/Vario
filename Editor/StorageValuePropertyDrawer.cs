@@ -13,13 +13,11 @@ namespace Damdor.VariableStorage.Editor
         private const float SourceSize = 0.4f;
         private const float Spacing = 20f;
         
-        private SerializedProperty sourceProperty;
-        private SerializedProperty nameProperty;
-        private SerializedProperty valueProperty;
-        
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
-            RetrieveProperties(property);
+            var sourceProperty = property.FindPropertyRelative("source");
+            var valueProperty = property.FindPropertyRelative("value");
+            
             var source = (ValueSource) sourceProperty.enumValueIndex;
             return source switch
             {
@@ -31,11 +29,14 @@ namespace Damdor.VariableStorage.Editor
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
         {
+            var sourceProperty = property.FindPropertyRelative("source");
+            var nameProperty = property.FindPropertyRelative("name");
+            var valueProperty = property.FindPropertyRelative("value");
+            
             EditorGUI.BeginProperty(position, label, property);
             EditorGUI.BeginChangeCheck();
 
             position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label, EditorStyles.label);
-            RetrieveProperties(property);
             var sourceLength = SourceSize * position.width;
             
             EditorGUI.PropertyField(
@@ -100,19 +101,12 @@ namespace Damdor.VariableStorage.Editor
             
         }
 
-        private void RetrieveProperties(SerializedProperty property)
-        {
-            sourceProperty = property.FindPropertyRelative("source");
-            nameProperty = property.FindPropertyRelative("name");
-            valueProperty = property.FindPropertyRelative("value");
-        }
-
         private static string[] GetVariables(SerializedProperty property)
         {
             var storageSource = property.serializedObject.targetObject as IVariableStorageSource;
             var storage = storageSource?.Storage;
             if (storage == null) return null;
-            var type = property.GetPropertyType().GetGenericArguments()[0];
+            var type = SerializedPropertyHelper.GetPropertyType(property).GetGenericArguments()[0];
             var variables = storage.Variables.Where(t => t.Type == type).Select(v => v.Name);
 
             // ReSharper disable once UseNegatedPatternMatching
