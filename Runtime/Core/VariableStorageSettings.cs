@@ -213,10 +213,19 @@ namespace Damdor.VariableStorage
             supportedTypes.Add(typeof(SpriteVariable));
             supportedTypes.Add(typeof(TextAssetVariable));
             supportedTypes.Add(typeof(LayerMaskVariable));
+            supportedTypes.Add(typeof(TransformVariable));
+            supportedTypes.Add(typeof(RectTransformVariable));
+            supportedTypes.Add(typeof(CanvasGroupVariable));
+            supportedTypes.Add(typeof(GraphicVariable));
+            supportedTypes.Add(typeof(ImageVariable));
 
 #if DAMDOR_FOUNDATION
             supportedTypes.Add(typeof(DateTimeVariable));
             supportedTypes.Add(typeof(TimeSpanVariable));
+#endif
+            
+#if TEXT_MESH_PRO
+            supportedTypes.Add(typeof(TMP_TextVariable));
 #endif
         }
         
