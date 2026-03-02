@@ -16,32 +16,25 @@ namespace Damdor.VariableStorage
         public List<Variable> Variables => variables;
         
         [SerializeReference] private List<Variable> variables = new();
-
-        /// <summary>
-        /// Evaluates the value of a variable by name.
-        /// </summary>
-        /// <typeparam name="T">The exactly type of the variable value.</typeparam>
-        /// <param name="name">The unique identifier of the variable.</param>
-        /// <param name="defaultValue">The value to return if the variable is not found.</param>
-        /// <returns>The value of the variable if found; otherwise, <paramref name="defaultValue"/>.</returns>
-        public T Evaluate<T>(string name, T defaultValue = default) => Evaluate(name, null, defaultValue);
         
         /// <summary>
         /// Evaluates the value of a variable by name, optionally searching a parent storage.
         /// </summary>
         /// <typeparam name="T">The expected type of the variable value.</typeparam>
         /// <param name="name">The unique identifier of the variable.</param>
-        /// <param name="parent">An optional fallback storage to search if the variable isn't found locally.</param>
         /// <param name="defaultValue">The value to return if the variable is not found in either storage.</param>
         /// <returns>The found value or the provided <paramref name="defaultValue"/>.</returns>
-        public T Evaluate<T>(string name, VariableStorage parent, T defaultValue = default)
+        public T Evaluate<T>(string name, T defaultValue = default)
         {
             // ReSharper disable once DuplicatedSequentialIfBodies
             if(TryEvaluate<T>(variables, name, out var result)) return result;
-            if (parent != null && TryEvaluate(parent.variables, name, out result)) return result;
+            foreach (var storage in VariableStorageSettings.GlobalStorages)
+            {
+                if(storage != null && TryEvaluate(storage.Variables, name, out result)) return result;
+            }
             return defaultValue;
         }
-
+        
         /// <summary>
         /// Evaluates a <see cref="StorageValue{T}"/> to retrieve its final value based on its source.
         /// </summary>
@@ -52,26 +45,13 @@ namespace Damdor.VariableStorage
         /// If <see cref="StorageValue{T}.Source"/> is <c>Storage</c>, returns the value from storage; 
         /// otherwise, returns the value <see cref="StorageValue{T}.Value"/>.
         /// </returns>
-        public T Evaluate<T>(StorageValue<T> value, T defaultValue = default) => Evaluate(value, null, defaultValue);
-
-        /// <summary>
-        /// Evaluates a <see cref="StorageValue{T}"/> to retrieve its final value based on its source.
-        /// </summary>
-        /// <typeparam name="T">The type of the value to evaluate.</typeparam>
-        /// <param name="value">The storage value definition containing the source, name, or literal value.</param>
-        /// <param name="parent">An optional parent storage for hierarchical lookups.</param>
-        /// <param name="defaultValue">The value to return if the variable lookup fails.</param>
-        /// <returns>
-        /// If <see cref="StorageValue{T}.Source"/> is <c>Storage</c>, returns the value from storage; 
-        /// otherwise, returns the value <see cref="StorageValue{T}.Value"/>.
-        /// </returns>
-        public T Evaluate<T>(StorageValue<T> value, VariableStorage parent, T defaultValue = default) => value.Source switch
+        public T Evaluate<T>(StorageValue<T> value, T defaultValue = default) => value.Source switch
         {
             ValueSource.Raw => value.Value,
-            ValueSource.Storage => Evaluate(value.Name, parent, defaultValue),
+            ValueSource.Storage => Evaluate(value.Name, defaultValue),
             _ => throw new ArgumentOutOfRangeException($"Unknown value source: {typeof(T).Name} ")
         };
-        
+
         /// <summary>
         /// Evaluates a <see cref="StorageValue{T, TSerializable}"/> to retrieve its final value based on its source.
         /// </summary>
@@ -83,25 +63,10 @@ namespace Damdor.VariableStorage
         /// If <see cref="StorageValue{T, TSerializable}.Source"/> is <c>Storage</c>, returns the value from storage; 
         /// otherwise, returns the value <see cref="StorageValue{T, TSerializable}.Value"/>.
         /// </returns>
-        public T Evaluate<T, TSerializable>(StorageValue<T, TSerializable> value, T defaultValue = default)
-            => Evaluate(value, null, defaultValue);
-        
-        /// <summary>
-        /// Evaluates a <see cref="StorageValue{T, TSerializable}"/> to retrieve its final value based on its source.
-        /// </summary>
-        /// <typeparam name="T">The type of the value to evaluate.</typeparam>
-        /// <typeparam name="TSerializable">The type of the value used to serialize a raw value.</typeparam>
-        /// <param name="value">The storage value definition containing the source, name, or literal value.</param>
-        /// <param name="parent">An optional parent storage for hierarchical lookups.</param>
-        /// <param name="defaultValue">The value to return if the variable lookup fails.</param>
-        /// <returns>
-        /// If <see cref="StorageValue{T, TSerializable}.Source"/> is <c>Storage</c>, returns the value from storage; 
-        /// otherwise, returns the value <see cref="StorageValue{T, TSerializable}.Value"/>.
-        /// </returns>
-        public T Evaluate<T, TSerializable>(StorageValue<T, TSerializable> value, VariableStorage parent, T defaultValue = default) => value.Source switch
+        public T Evaluate<T, TSerializable>(StorageValue<T, TSerializable> value, T defaultValue = default) => value.Source switch
         {
             ValueSource.Raw => value.Value,
-            ValueSource.Storage => Evaluate(value.Name, parent, defaultValue),
+            ValueSource.Storage => Evaluate(value.Name, defaultValue),
             _ => throw new ArgumentOutOfRangeException($"Unknown value source: {typeof(T).Name} ")
         };
         

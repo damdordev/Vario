@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Damdor.Foundation;
+using UnityEditor.iOS;
+using UnityEngine;
+using UnityEngine.UI;
 
 namespace Damdor.VariableStorage
 {
@@ -31,10 +34,25 @@ namespace Damdor.VariableStorage
             }
         }
 
+        /// <summary>
+        /// Gets a list of all registered global variable storages.
+        /// These storages are accessible globally and can be used for application-wide variables.
+        /// </summary>
+        /// <value>A read-only collection of registered global <see cref="VariableStorage"/> instances.</value>
+        public static IReadOnlyList<VariableStorage> GlobalStorages
+        {
+            get
+            {
+                EnsureInit();
+                return globalStorages;
+            }
+        }
+
         private static bool init;
         
         private static readonly List<Type> supportedTypes = new();
         private static readonly List<ConverterData> converters = new();
+        private static readonly List<VariableStorage> globalStorages = new();
 
         /// <summary>
         /// Registers a new variable type to be recognized by the storage system.
@@ -111,6 +129,7 @@ namespace Damdor.VariableStorage
         ///
         ///    public void Init()
         ///    {
+        ///    {
         ///        VariableStorageSettings.RegisterVariableType<MyCustomVariable>();
         ///        VariableStorageSettings.RegisterConverter<MyCustomVariable, MyCustomSerializableVariable>(Convert, Convert);
         ///    }
@@ -134,6 +153,33 @@ namespace Damdor.VariableStorage
         }
 
         /// <summary>
+        /// Registers a custom <see cref="VariableStorage"/> instance as a global storage.
+        /// </summary>
+        /// <param name="globalStorage">The variable storage instance to register globally.</param>
+        public static void RegisterGlobalStorage(VariableStorage globalStorage)
+        {
+            EnsureInit();
+            globalStorages.Add(globalStorage);
+        }
+
+        /// <summary>
+        /// Registers a predefined default global storage based on the provided enum value.
+        /// </summary>
+        /// <param name="storage">The type of default global storage to register (e.g., Easing).</param>
+        public static void RegisterGlobalStorage(DefaultGlobalVariableStorage storage)
+        {
+            switch (storage)
+            {
+                case DefaultGlobalVariableStorage.Easing:
+                    RegisterGlobalStorage(
+                        Resources.Load<GlobalVariableStorage>("VariableStorage_DefaultEasing").Storage
+                    );
+                break;
+            }
+            
+        }
+        
+        /// <summary>
         /// Clears all custom registrations and restores the system to its original default state. This method should
         /// be invoked before your game restarts if you register any custom types or converterss
         /// </summary>
@@ -141,6 +187,7 @@ namespace Damdor.VariableStorage
         {
             ResetSupportedTypes();
             ResetConverters();
+            globalStorages.Clear();
             init = true;
         }
 

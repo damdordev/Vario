@@ -54,19 +54,53 @@ bool hasScore = storage.HasVariable<int>("Score");
 using UnityEngine;
 using Damdor.VariableStorage;
 
-public class HealthComponent : MonoBehaviour, IParentVariableStorageSource
+public class HealthComponent : MonoBehaviour, IVariableStorageSource
 {
-    public IParentVariableStorageSource Storage => storage;
+    public VariableStorage Storage => storage;
     
     // In Inspector, you can choose Source: Raw (value 100) or Storage (name "MaxHealth")
     public StorageValue<float> maxHealth; 
-    public VariableStorage storage; // Assigned from somewhere
+    public VariableStorage storage; 
 
     void Start()
     {
         // Evaluates based on the Source setting
         float currentMax = storage.Evaluate(maxHealth);
         Debug.Log($"Max Health: {currentMax}");
+    }
+}
+```
+
+## Global Storage
+
+You can register global storages that are accessible throughout your application. This is useful for shared configuration or game-wide state.
+
+```csharp
+using UnityEngine;
+using Damdor.VariableStorage;
+
+public class GameInitializer : MonoBehaviour
+{
+    [SerializeField] private GlobalVariableStorage myGlobalStorage;
+
+    [UnityEditor.Callbacks.DidReloadScripts]
+    private static void OnScriptsReloaded()
+    {
+        InitializeGlobalVariableStorages();
+    }
+    
+    private void Awake()
+    {
+        InitializeGlobalVariableStorages();
+    }
+    
+    private void InitializeGlobalVariableStorages()
+    {
+        // Register a custom global storage
+        VariableStorageSettings.RegisterGlobalStorage(myGlobalStorage.Storage);
+
+        // Register a default global storage (e.g., Easing curves)
+        VariableStorageSettings.RegisterGlobalStorage(DefaultGlobalVariableStorage.Easing);        
     }
 }
 ```

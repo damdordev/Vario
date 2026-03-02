@@ -107,15 +107,14 @@ namespace Damdor.VariableStorage.Editor
             var storage = storageSource?.Storage;
             if (storage == null) return null;
             var type = SerializedPropertyHelper.GetPropertyType(property).GetGenericArguments()[0];
-            var variables = storage.Variables.Where(t => t.Type == type).Select(v => v.Name);
+            var variables = storage.Variables.Where(t => t.Type == type).Select(v => v.Name).ToList();
 
-            // ReSharper disable once UseNegatedPatternMatching
-            // ReSharper disable once SuspiciousTypeConversion.Global
-            var parentSource = property.serializedObject.targetObject as IParentVariableStorageSource;
-            if (parentSource?.ParentStorage == null) return variables.ToArray();
-            var parentVariables = parentSource.ParentStorage.Variables.Where(t => t.Type == type).Select(v => v.Name);
-
-            return variables.Concat(parentVariables).Distinct().ToArray();
+            foreach (var globaStorage in VariableStorageSettings.GlobalStorages)
+            {
+                variables.AddRange(globaStorage.Variables.Where(t => t.Type == type).Select(v => v.Name));
+            }
+            
+            return variables.Distinct().OrderBy(v => v).ToArray();
         }
 
     }

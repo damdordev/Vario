@@ -51,25 +51,27 @@ namespace Damdor.VariableStorage.Tests
         [Test]
         public void Evaluate_WithParent_ReturnsParentValue_WhenVariableNotFoundLocally()
         {
-            var parentStorage = new VariableStorage();
+            var globalStorage = new VariableStorage();
             var variable = new FloatVariable { Name = "TestFloat", Value = 3.14f };
-            parentStorage.AddVariable(variable);
+            globalStorage.AddVariable(variable);
 
-            var result = storage.Evaluate<float>("TestFloat", parentStorage);
+            VariableStorageSettings.RegisterGlobalStorage(globalStorage);
+            var result = storage.Evaluate<float>("TestFloat");
             Assert.That(result, Is.EqualTo(3.14f));
         }
 
         [Test]
         public void Evaluate_WithParent_ReturnsLocalValue_WhenVariableExistsLocally()
         {
-            var parentStorage = new VariableStorage();
-            var parentVariable = new IntVariable { Name = "TestInt", Value = 100 };
-            parentStorage.AddVariable(parentVariable);
+            var globalStorage = new VariableStorage();
+            var globalVariable = new IntVariable { Name = "TestInt", Value = 100 };
+            globalStorage.AddVariable(globalVariable);
+            VariableStorageSettings.RegisterGlobalStorage(globalStorage);
 
             var localVariable = new IntVariable { Name = "TestInt", Value = 200 };
             storage.AddVariable(localVariable);
 
-            var result = storage.Evaluate<int>("TestInt", parentStorage);
+            var result = storage.Evaluate<int>("TestInt");
             Assert.That(result, Is.EqualTo(200));
         }
 
@@ -105,9 +107,10 @@ namespace Damdor.VariableStorage.Tests
         [Test]
         public void Evaluate_StorageValue_WithParent_ReturnsParentValue()
         {
-            var parentStorage = new VariableStorage();
+            var globalStorage = new VariableStorage();
             var variable = new IntVariable { Name = "StoredInt", Value = 99 };
-            parentStorage.AddVariable(variable);
+            globalStorage.AddVariable(variable);
+            VariableStorageSettings.RegisterGlobalStorage(globalStorage);
 
             var storageValue = new StorageValue<int>
             {
@@ -115,7 +118,7 @@ namespace Damdor.VariableStorage.Tests
                 Name = "StoredInt"
             };
 
-            var result = storage.Evaluate(storageValue, parentStorage);
+            var result = storage.Evaluate(storageValue);
             Assert.That(result, Is.EqualTo(99));
         }
 
