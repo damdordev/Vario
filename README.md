@@ -1,4 +1,4 @@
-# Variable Storage
+# Vario
 
 A flexible and serializable variable storage system for Unity. This package allows you to manage collections 
 of variables with support for various types.
@@ -8,7 +8,7 @@ of variables with support for various types.
 *   **Typed Variables**: Strongly typed variable storage (Int, Float, String, Vector3, etc.).
 *   **Serialization Support**: Built-in support for Unity serialization, including handling of non-serializable types via converters.
 *   **Hierarchical Evaluation**: Evaluate variables with fallback to parent storage.
-*   **Flexible Input**: `StorageValue<T>` allows fields in your scripts to easily switch between a constant value and a variable reference.
+*   **Flexible Input**: `VarioValue<T>` allows fields in your scripts to easily switch between a constant value and a variable reference.
 *   **Extensible**: Easy to add custom variable types and converters.
 
 ## Installation
@@ -20,16 +20,16 @@ This package is available via UPM.
 ### Creating Storage and Adding Variables
 
 ```csharp
-using Damdor.VariableStorage;
+using Damdor.Vario;
 
-var storage = new VariableStorage();
+var storage = new VarioStorage();
 
 // Add an integer variable
-var intVar = new IntVariable { Name = "Score", Value = 100 };
+var intVar = new IntVarioVariable { Name = "Score", Value = 100 };
 storage.AddVariable(intVar);
 
 // Add a string variable
-var stringVar = new StringVariable { Name = "PlayerName", Value = "Hero" };
+var stringVar = new StringVarioVariable { Name = "PlayerName", Value = "Hero" };
 storage.AddVariable(stringVar);
 ```
 
@@ -48,19 +48,19 @@ bool hasScore = storage.HasVariable<int>("Score");
 
 ### Using StorageValue in Components
 
-`StorageValue<T>` is a helper struct that allows you to expose a field in the Inspector that can either be a raw value or a reference to a variable in a storage.
+`VarioValue<T>` is a helper struct that allows you to expose a field in the Inspector that can either be a raw value or a reference to a variable in a storage.
 
 ```csharp
 using UnityEngine;
-using Damdor.VariableStorage;
+using Damdor.Vario;
 
-public class HealthComponent : MonoBehaviour, IVariableStorageSource
+public class HealthComponent : MonoBehaviour, IVarioStorageSource
 {
-    public VariableStorage Storage => storage;
+    public VarioStorage Storage => storage;
     
     // In Inspector, you can choose Source: Raw (value 100) or Storage (name "MaxHealth")
-    public StorageValue<float> maxHealth; 
-    public VariableStorage storage; 
+    public VarioValue<float> maxHealth; 
+    public VarioStorage storage; 
 
     void Start()
     {
@@ -77,12 +77,10 @@ You can register global storages that are accessible throughout your application
 
 ```csharp
 using UnityEngine;
-using Damdor.VariableStorage;
+using Damdor.Vario;
 
 public class GameInitializer : MonoBehaviour
 {
-    [SerializeField] private GlobalVariableStorage myGlobalStorage;
-
     [UnityEditor.Callbacks.DidReloadScripts]
     private static void OnScriptsReloaded()
     {
@@ -96,11 +94,14 @@ public class GameInitializer : MonoBehaviour
     
     private void InitializeGlobalVariableStorages()
     {
+        // find your custom global storage
+        GlobalVarioStorage myGlobalStorage = ...
+        
         // Register a custom global storage
-        VariableStorageSettings.RegisterGlobalStorage(myGlobalStorage.Storage);
+        VarioSettings.RegisterGlobalStorage(myGlobalStorage.Storage);
 
         // Register a default global storage (e.g., Easing curves)
-        VariableStorageSettings.RegisterGlobalStorage(DefaultGlobalVariableStorage.Easing);        
+        VarioSettings.RegisterGlobalStorage(VarioDefaultStorage.Easing);        
     }
 }
 ```
@@ -113,33 +114,33 @@ To add a new type, inherit from `Variable<T>`.
 
 ```csharp
 using System;
-using Damdor.VariableStorage;
+using Damdor.Vario;
 using UnityEngine;
 
 [Serializable]
-[VariableTypeName("myCustomType")]
-public class MyCustomVariable : Variable<MyCustomType> { }
+[VarioVariableName("myCustomType")]
+public class MyCustomVarioVariable : VarioVariable<MyCustomType> { }
 
 public class VariableStorageIntegration
 { 
     [UnityEditor.Callbacks.DidReloadScripts]
     private static void OnScriptsReloaded()
     {
-        VariableStorageSettings.RegisterVariableType<MyCustomVariable>();
+        VarioSettings.RegisterVariableType<MyCustomVarioVariable>();
     }
 }
 ```
 
 ### Handling Non-Serializable Types
 
-If you have a type that Unity cannot serialize directly, use `Variable<T, TSerializable>` and register a converter.
+If you have a type that Unity cannot serialize directly, use `VarioVariable<T, TSerializable>` and register a converter.
 
 1.  **Define the Variable Class**:
 
 ```csharp
 [Serializable]
-[VariableTypeName("dateTime")]
-public class DateTimeVariable : Variable<DateTime, SerializableDateTime> { }
+[VarioVariableName("dateTime")]
+public class DateTimeVarioVariable : VarioVariable<DateTime, SerializableDateTime> { }
 ```
 
 2.  **Register the Converter**:
@@ -149,7 +150,7 @@ You should do this in two places: on the very start of your game (for runtime) a
 compilation (for editor purpose)
 
 ```csharp
-VariableStorageSettings.RegisterConverter<DateTime, SerializableDateTime>(
+VarioSettings.RegisterConverter<DateTime, SerializableDateTime>(
     dateTime => new SerializableDateTime(dateTime), // To Serializable
     serializable => serializable.ToDateTime()       // From Serializable
 );
