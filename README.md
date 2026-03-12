@@ -25,12 +25,14 @@ using Damdor.Vario;
 var storage = new VarioStorage();
 
 // Add an integer variable
-var intVar = new IntVarioVariable { Name = "Score", Value = 100 };
-storage.AddVariable(intVar);
+storage.Update<int>("Score", 100);
+// or
+storage.Update("Score", 100);
 
 // Add a string variable
-var stringVar = new StringVarioVariable { Name = "PlayerName", Value = "Hero" };
-storage.AddVariable(stringVar);
+storage.Update<string>("PlayerName", "Hero");
+// or
+storage.Update("PlayerName", "Hero");
 ```
 
 ### Retrieving Values

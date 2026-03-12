@@ -16,14 +16,72 @@ namespace Damdor.Vario
         public List<VarioVariable> Variables => variables;
         
         [SerializeReference] private List<VarioVariable> variables = new();
+
+        /// <summary>
+        /// Retrieves the value of a variable by name.
+        /// </summary>
+        /// <typeparam name="T">The type of the variable to retrieve.</typeparam>
+        /// <param name="name">The name of the variable.</param>
+        /// <param name="defaultValue">The value to return if the variable is not found.</param>
+        /// <returns>The value of the variable, or the default value if not found.</returns>
+        public T Get<T>(string name, T defaultValue = default)
+        {
+            var variable = GetVariableImpl<T>(name);
+            if (variable == null) return defaultValue;
+            return variable.Value;
+        }
         
         /// <summary>
-        /// Retrieves a typed variable instance.
+        /// Checks if a variable with the specified name and type exists in the storage.
         /// </summary>
-        /// <typeparam name="T">The type of the variable to find.</typeparam>
+        /// <typeparam name="T">The type of the variable to check for.</typeparam>
         /// <param name="name">The name of the variable.</param>
-        /// <returns>The <see cref="TypedVarioVariable{T}"/> if it exists and matches the type; otherwise, <c>null</c>.</returns>
-        public TypedVarioVariable<T> GetVariable<T>(string name)
+        /// <returns>True if the variable exists, otherwise false.</returns>
+        public bool Contains<T>(string name)
+        {
+            return GetVariableImpl<T>(name) != null;
+        }
+        
+        /// <summary>
+        /// Updates the value of a variable. If the variable does not exist, it will be created.
+        /// </summary>
+        /// <typeparam name="T">The type of the variable.</typeparam>
+        /// <param name="name">The name of the variable to update or create.</param>
+        /// <param name="value">The new value to set.</param>
+        public void Update<T>(string name, T value)
+        {
+            var variable = GetVariableImpl<T>(name);
+            if (variable == null)
+            {
+                variable = VarioSettings.Create<T>();
+                variable.Name = name;
+                variables.Add(variable);
+            }
+
+            variable.Value = value;
+        }
+
+        /// <summary>
+        /// Removes a variable from the storage.
+        /// </summary>
+        /// <typeparam name="T">The type of the variable to remove.</typeparam>
+        /// <param name="name">The name of the variable to remove.</param>
+        /// <returns>True if the variable was found and removed, otherwise false.</returns>
+        public bool Remove<T>(string name)
+        {
+            for (var i = 0; i < variables.Count; i++)
+            {
+                if (variables[i] is TypedVarioVariable<T> && variables[i].Name == name)
+                {
+                    variables.RemoveAt(i);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        
+        private TypedVarioVariable<T> GetVariableImpl<T>(string name)
         {
             foreach (var variable in variables)
             {
@@ -31,42 +89,6 @@ namespace Damdor.Vario
             }
 
             return null;
-        }
-        
-        /// <summary>
-        /// Checks if a variable of a specific type exists in the storage.
-        /// </summary>
-        /// <typeparam name="T">The type to check for.</typeparam>
-        /// <param name="name">The name of the variable.</param>
-        /// <returns><c>true</c> if the variable exists and matches the type <typeparamref name="T"/>; otherwise, <c>false</c>.</returns>
-        public bool HasVariable<T>(string name)
-        {
-            return GetVariable<T>(name) != null;
-        }
-
-        /// <summary>
-        /// Updates the value of an existing variable.
-        /// </summary>
-        /// <remarks>It's up to developer to check if variable of the same type and name exist. If yes then use method <c>AddVariable</c></remarks> 
-        /// <typeparam name="T">The type of the variable value.</typeparam>
-        /// <param name="name">The name of the variable to update.</param>
-        /// <param name="value">The new value to assign.</param>
-        /// <returns><c>true</c> if the variable was found and updated; <c>false</c> if the variable does not exist or type mismatch.</returns>
-        public bool UpdateVariable<T>(string name, T value)
-        {
-            var variable = GetVariable<T>(name);
-            if(variable != null)  variable.Value = value;
-            return variable != null;
-        }
-
-        /// <summary>
-        /// Adds a new variable to the storage collection if it is not already present.
-        /// </summary>
-        /// <remarks>It's up to developer to check if variable of the same type and name exist. If yes then use method <c>UpdateVariable</c></remarks>
-        /// <param name="varioVariable">The <see cref="VarioVariable"/> instance to add.</param>
-        public void AddVariable(VarioVariable varioVariable)
-        {
-            variables.Add(varioVariable);
         }
 
     }

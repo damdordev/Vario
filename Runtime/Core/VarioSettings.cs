@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Damdor.Foundation;
+using GluonGui.WorkspaceWindow.Views.WorkspaceExplorer.Explorer;
 using UnityEditor.iOS;
 using UnityEngine;
 using UnityEngine.UI;
@@ -53,6 +54,7 @@ namespace Damdor.Vario
         private static readonly List<Type> supportedTypes = new();
         private static readonly List<ConverterData> converters = new();
         private static readonly List<VarioStorage> globalStorages = new();
+        private static readonly Dictionary<Type, Type> valueToVariableType = new();
 
         /// <summary>
         /// Registers a new variable type to be recognized by the storage system.
@@ -80,8 +82,7 @@ namespace Damdor.Vario
         public static void RegisterVariableType<T>() where T : VarioVariable
         {
             EnsureInit();
-            if(supportedTypes.Contains(typeof(T))) return;
-            supportedTypes.Add(typeof(T));
+            DoRegisterVariableType<T>();
         }
 
         /// <summary>
@@ -194,38 +195,39 @@ namespace Damdor.Vario
         private static void ResetSupportedTypes()
         {
             supportedTypes.Clear();
+            valueToVariableType.Clear();
 
-            supportedTypes.Add(typeof(BoolVarioVariable));
-            supportedTypes.Add(typeof(IntVarioVariable));
-            supportedTypes.Add(typeof(FloatVarioVariable));
-            supportedTypes.Add(typeof(StringVarioVariable));
-            supportedTypes.Add(typeof(ColorVarioVariable));
-            supportedTypes.Add(typeof(Vector2VarioVariable));
-            supportedTypes.Add(typeof(Vector3VarioVariable));
-            supportedTypes.Add(typeof(GameObjectVarioVariable));
-            supportedTypes.Add(typeof(RectVarioVariable));
-            supportedTypes.Add(typeof(AnimationCurveVarioVariable));
-            supportedTypes.Add(typeof(AudioClipVarioVariable));
-            supportedTypes.Add(typeof(MaterialVarioVariable));
-            supportedTypes.Add(typeof(ShaderVarioVariable));
-            supportedTypes.Add(typeof(MeshVarioVariable));
-            supportedTypes.Add(typeof(TextureVarioVariable));
-            supportedTypes.Add(typeof(SpriteVarioVariable));
-            supportedTypes.Add(typeof(TextAssetVarioVariable));
-            supportedTypes.Add(typeof(LayerMaskVarioVariable));
-            supportedTypes.Add(typeof(TransformVarioVariable));
-            supportedTypes.Add(typeof(RectTransformVarioVariable));
-            supportedTypes.Add(typeof(CanvasGroupVarioVariable));
-            supportedTypes.Add(typeof(GraphicVarioVariable));
-            supportedTypes.Add(typeof(ImageVarioVariable));
+            DoRegisterVariableType<BoolVarioVariable>();
+            DoRegisterVariableType<IntVarioVariable>();
+            DoRegisterVariableType<FloatVarioVariable>();
+            DoRegisterVariableType<StringVarioVariable>();
+            DoRegisterVariableType<ColorVarioVariable>();
+            DoRegisterVariableType<Vector2VarioVariable>();
+            DoRegisterVariableType<Vector3VarioVariable>();
+            DoRegisterVariableType<GameObjectVarioVariable>();
+            DoRegisterVariableType<RectVarioVariable>();
+            DoRegisterVariableType<AnimationCurveVarioVariable>();
+            DoRegisterVariableType<AudioClipVarioVariable>();
+            DoRegisterVariableType<MaterialVarioVariable>();
+            DoRegisterVariableType<ShaderVarioVariable>();
+            DoRegisterVariableType<MeshVarioVariable>();
+            DoRegisterVariableType<TextureVarioVariable>();
+            DoRegisterVariableType<SpriteVarioVariable>();
+            DoRegisterVariableType<TextAssetVarioVariable>();
+            DoRegisterVariableType<LayerMaskVarioVariable>();
+            DoRegisterVariableType<TransformVarioVariable>();
+            DoRegisterVariableType<RectTransformVarioVariable>();
+            DoRegisterVariableType<CanvasGroupVarioVariable>();
+            DoRegisterVariableType<GraphicVarioVariable>();
+            DoRegisterVariableType<ImageVarioVariable>();
 
 #if DAMDOR_FOUNDATION
-            supportedTypes.Add(typeof(DateTimeVarioVariable));
-            supportedTypes.Add(typeof(TimeSpanVarioVariable));
+            DoRegisterVariableType<DateTimeVarioVariable>();
+            DoRegisterVariableType<TimeSpanVarioVariable>();
 #endif
             
 #if TEXT_MESH_PRO
-            supportedTypes.Add(typeof(TMPTextVarioVariable));
+            DoRegisterVariableType<TMPTextVarioVariable>();
 #endif
         }
         
@@ -258,6 +260,16 @@ namespace Damdor.Vario
             var converter = (Converter<TSerializable, T>) data.FromSerializable;
             return converter(serializableValue);
         }
+        
+        internal static VarioVariable<T> Create<T>()
+        {
+            EnsureInit();
+            if (valueToVariableType.TryGetValue(typeof(T), out var type))
+            {
+                return (VarioVariable<T>)Activator.CreateInstance(type);
+            }
+            return null;
+        }
 
         private static void DoRegisterConverter<T, TSerializable>(
             Converter<T, TSerializable> toSerializable,
@@ -279,6 +291,15 @@ namespace Damdor.Vario
                 FromSerializable = fromSerializable
             };
             converters.Add(data);
+        }
+        
+        private static void DoRegisterVariableType<T>() where T : VarioVariable
+        {
+            if(supportedTypes.Contains(typeof(T))) return;
+            supportedTypes.Add(typeof(T));
+
+            var variable = Activator.CreateInstance<T>();
+            valueToVariableType[variable.Type] = typeof(T);
         }
         
         private static ConverterData GetConverterData<T, TSerializable>()

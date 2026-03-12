@@ -1,5 +1,6 @@
 using System;
 using NUnit.Framework;
+using UnityEngine;
 
 namespace Damdor.Vario.Tests
 {
@@ -24,10 +25,9 @@ namespace Damdor.Vario.Tests
         [Test]
         public void AddVariable_AddsVariableToStorage()
         {
-            var variable = new IntVarioVariable { Name = "TestInt", Value = 10 };
-            storage.AddVariable(variable);
+            storage.Update("TestInt", 10);
 
-            Assert.That(storage.HasVariable<int>("TestInt"), Is.True);
+            Assert.That(storage.Contains<int>("TestInt"), Is.True);
             Assert.That(VarioValue<int>.FromStorage("TestInt").Evaluate(storage), Is.EqualTo(10));
         }
 
@@ -41,8 +41,7 @@ namespace Damdor.Vario.Tests
         [Test]
         public void Evaluate_ReturnsValue_WhenVariableExists()
         {
-            var variable = new StringVarioVariable { Name = "TestString", Value = "Hello" };
-            storage.AddVariable(variable);
+            storage.Update("TestString", "Hello");
 
             var result = VarioValue<string>.FromStorage("TestString").Evaluate(storage);
             Assert.That(result, Is.EqualTo("Hello"));
@@ -52,8 +51,7 @@ namespace Damdor.Vario.Tests
         public void Evaluate_WithParent_ReturnsParentValue_WhenVariableNotFoundLocally()
         {
             var globalStorage = new VarioStorage();
-            var variable = new FloatVarioVariable { Name = "TestFloat", Value = 3.14f };
-            globalStorage.AddVariable(variable);
+            globalStorage.Update("TestFloat", 3.14f);
 
             VarioSettings.RegisterGlobalStorage(globalStorage);
             var result = VarioValue<float>.FromStorage("TestFloat").Evaluate(storage);
@@ -65,11 +63,11 @@ namespace Damdor.Vario.Tests
         {
             var globalStorage = new VarioStorage();
             var globalVariable = new IntVarioVariable { Name = "TestInt", Value = 100 };
-            globalStorage.AddVariable(globalVariable);
+            globalStorage.Update("TestInt", 100);
             VarioSettings.RegisterGlobalStorage(globalStorage);
 
             var localVariable = new IntVarioVariable { Name = "TestInt", Value = 200 };
-            storage.AddVariable(localVariable);
+            storage.Update("TestInt", 200);
 
             var result = VarioValue<int>.FromStorage("TestInt").Evaluate(storage);
             Assert.That(result, Is.EqualTo(200));
@@ -91,8 +89,7 @@ namespace Damdor.Vario.Tests
         [Test]
         public void Evaluate_StorageValue_StorageSource_ReturnsStoredValue()
         {
-            var variable = new IntVarioVariable { Name = "StoredInt", Value = 99 };
-            storage.AddVariable(variable);
+            storage.Update("StoredInt", 99);
 
             var storageValue = new VarioValue<int>
             {
@@ -109,7 +106,7 @@ namespace Damdor.Vario.Tests
         {
             var globalStorage = new VarioStorage();
             var variable = new IntVarioVariable { Name = "StoredInt", Value = 99 };
-            globalStorage.AddVariable(variable);
+            globalStorage.Update("StoredInt", 99);
             VarioSettings.RegisterGlobalStorage(globalStorage);
 
             var storageValue = new VarioValue<int>
@@ -125,37 +122,25 @@ namespace Damdor.Vario.Tests
         [Test]
         public void UpdateVariable_UpdatesExistingVariable()
         {
-            var variable = new IntVarioVariable { Name = "UpdateTest", Value = 1 };
-            storage.AddVariable(variable);
+            storage.Update("UpdateTest", 1);
 
-            var success = storage.UpdateVariable("UpdateTest", 2);
+            storage.Update("UpdateTest", 2);
             
-            Assert.That(success, Is.True);
             Assert.That( VarioValue<int>.FromStorage("UpdateTest").Evaluate(storage), Is.EqualTo(2));
-        }
-
-        [Test]
-        public void UpdateVariable_ReturnsFalse_WhenVariableDoesNotExist()
-        {
-            var success = storage.UpdateVariable("NonExistent", 10);
-            Assert.That(success, Is.False);
         }
 
         [Test]
         public void GetVariable_ReturnsTypedVariable_WhenExists()
         {
-            var variable = new IntVarioVariable { Name = "TestInt", Value = 10 };
-            storage.AddVariable(variable);
+            storage.Update("TestInt", 10);
 
-            var retrieved = storage.GetVariable<int>("TestInt");
-            Assert.That(retrieved, Is.Not.Null);
-            Assert.That(retrieved.Value, Is.EqualTo(10));
+            Assert.Equals(10, storage.Get<int>("TestInt"));
         }
 
         [Test]
         public void GetVariable_ReturnsNull_WhenVariableDoesNotExist()
         {
-            var retrieved = storage.GetVariable<int>("NonExistent");
+            var retrieved = storage.Get<int>("NonExistent");
             Assert.That(retrieved, Is.Null);
         }
 
@@ -168,8 +153,7 @@ namespace Damdor.Vario.Tests
             );
             
             var expectedGuid = Guid.NewGuid();
-            var variable = new GuidVarioVariable { Name = "TestGuid", Value = expectedGuid };
-            storage.AddVariable(variable);
+            storage.Update<Guid>("TestGuid", expectedGuid);
 
             var result = VarioValue<Guid>.FromStorage("TestGuid").Evaluate(storage);
             Assert.That(result, Is.EqualTo(expectedGuid));
