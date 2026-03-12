@@ -47,7 +47,8 @@ namespace Damdor.Vario
         }
 
         /// <summary>
-        /// Evaluates the value based on its source.
+        /// Evaluates the value based on its source. Method falls back to global storages if not found
+        /// in <c>storage</c>
         /// If source is <c>Raw</c>, returns <see cref="Value"/>.
         /// If source is <c>Storage</c>, attempts to retrieve the value from the provided <paramref name="storage"/>.
         /// </summary>
@@ -55,8 +56,20 @@ namespace Damdor.Vario
         /// <param name="defaultValue">The value to return if the variable is not found in storage.</param>
         /// <returns>The evaluated value.</returns>
         public T Evaluate(VarioStorage storage, T defaultValue = default)
-            => VarioInternalHelper.Evaluate(storage, this, defaultValue);
+            => VarioInternalHelper.Evaluate(storage, this, true, defaultValue);
 
+        /// <summary>
+        /// Evaluates the value based on its source. Method ignores global storages if not found
+        /// in <c>storage</c>
+        /// If source is <c>Raw</c>, returns <see cref="Value"/>.
+        /// If source is <c>Storage</c>, attempts to retrieve the value from the provided <paramref name="storage"/>.
+        /// </summary>
+        /// <param name="storage">The storage to look up the value in if source is <c>Storage</c>. Can be null</param>
+        /// <param name="defaultValue">The value to return if the variable is not found in storage.</param>
+        /// <returns>The evaluated value.</returns>
+        public T EvaluateLocal(VarioStorage storage, T defaultValue = default)
+            => VarioInternalHelper.Evaluate(storage, this, false, defaultValue);
+        
         /// <summary>
         /// Creates a <see cref="VarioValue{T}"/> initialized with a raw value.
         /// </summary>
@@ -136,7 +149,8 @@ namespace Damdor.Vario
         }
         
         /// <summary>
-        /// Evaluates the value based on its source.
+        /// Evaluates the value based on its source. Method falls back to global storages if not found
+        /// in <c>storage</c>
         /// If source is <c>Raw</c>, returns <see cref="Value"/>.
         /// If source is <c>Storage</c>, attempts to retrieve the value from the provided <paramref name="storage"/>.
         /// </summary>
@@ -144,7 +158,19 @@ namespace Damdor.Vario
         /// <param name="defaultValue">The value to return if the variable is not found in storage.</param>
         /// <returns>The evaluated value.</returns>
         public T Evaluate(VarioStorage storage, T defaultValue = default)
-            => VarioInternalHelper.Evaluate(storage, this, defaultValue);
+            => VarioInternalHelper.Evaluate(storage, this, true, defaultValue);
+        
+        /// <summary>
+        /// Evaluates the value based on its source. Method ignores global storages if not found
+        /// in <c>storage</c>
+        /// If source is <c>Raw</c>, returns <see cref="Value"/>.
+        /// If source is <c>Storage</c>, attempts to retrieve the value from the provided <paramref name="storage"/>.
+        /// </summary>
+        /// <param name="storage">The storage to look up the value in if source is <c>Storage</c>. Can be null</param>
+        /// <param name="defaultValue">The value to return if the variable is not found in storage.</param>
+        /// <returns>The evaluated value.</returns>
+        public T EvaluateLocal(VarioStorage storage, T defaultValue = default)
+            => VarioInternalHelper.Evaluate(storage, this, false, defaultValue);
         
         /// <summary>
         /// Creates a <see cref="VarioValue{T, TSerializable}"/> initialized with a raw value.
