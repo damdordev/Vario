@@ -1,6 +1,5 @@
 using System;
 using NUnit.Framework;
-using UnityEngine;
 
 namespace Damdor.Vario.Tests
 {
@@ -62,11 +61,9 @@ namespace Damdor.Vario.Tests
         public void Evaluate_WithParent_ReturnsLocalValue_WhenVariableExistsLocally()
         {
             var globalStorage = new VarioStorage();
-            var globalVariable = new IntVarioVariable { Name = "TestInt", Value = 100 };
             globalStorage.Update("TestInt", 100);
             VarioSettings.RegisterGlobalStorage(globalStorage);
 
-            var localVariable = new IntVarioVariable { Name = "TestInt", Value = 200 };
             storage.Update("TestInt", 200);
 
             var result = VarioValue<int>.FromStorage("TestInt").Evaluate(storage);
@@ -105,7 +102,6 @@ namespace Damdor.Vario.Tests
         public void Evaluate_StorageValue_WithParent_ReturnsParentValue()
         {
             var globalStorage = new VarioStorage();
-            var variable = new IntVarioVariable { Name = "StoredInt", Value = 99 };
             globalStorage.Update("StoredInt", 99);
             VarioSettings.RegisterGlobalStorage(globalStorage);
 
@@ -140,7 +136,7 @@ namespace Damdor.Vario.Tests
         [Test]
         public void GetVariable_ReturnsDefaultValue_WhenVariableDoesNotExist()
         {
-            Assert.AreEqual(10, storage.Get<int>("NonExistent", 10));
+            Assert.AreEqual(10, storage.Get("NonExistent", 10));
         }
 
         [Test]

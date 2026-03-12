@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Damdor.Foundation;
-using GluonGui.WorkspaceWindow.Views.WorkspaceExplorer.Explorer;
-using UnityEditor.iOS;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Damdor.Vario
 {
@@ -176,6 +173,8 @@ namespace Damdor.Vario
                         Resources.Load<VarioGlobalStorage>("Vario_DefaultEasing").Storage
                     );
                 break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(storage), storage, null);
             }
             
         }

@@ -27,8 +27,7 @@ namespace Damdor.Vario
         public T Get<T>(string name, T defaultValue = default)
         {
             var variable = GetVariableImpl<T>(name);
-            if (variable == null) return defaultValue;
-            return variable.Value;
+            return variable == null ? defaultValue : variable.Value;
         }
         
         /// <summary>
@@ -71,11 +70,9 @@ namespace Damdor.Vario
         {
             for (var i = 0; i < variables.Count; i++)
             {
-                if (variables[i] is TypedVarioVariable<T> && variables[i].Name == name)
-                {
-                    variables.RemoveAt(i);
-                    return true;
-                }
+                if (variables[i] is not TypedVarioVariable<T> || variables[i].Name != name) continue;
+                variables.RemoveAt(i);
+                return true;
             }
 
             return false;
