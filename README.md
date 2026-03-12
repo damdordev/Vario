@@ -37,10 +37,10 @@ storage.AddVariable(stringVar);
 
 ```csharp
 // Get value directly
-int score = storage.Evaluate<int>("Score");
+int score = VarioValue<int>.FromStorage("Score").Evaluate(storage);
 
 // Get value with a default if not found
-int health = storage.Evaluate<int>("Health", 100);
+int health = VarioValue<int>.FromStorage("Health").Evaluate(storage, -1);
 
 // Check if variable exists
 bool hasScore = storage.HasVariable<int>("Score");
@@ -65,7 +65,7 @@ public class HealthComponent : MonoBehaviour, IVarioStorageSource
     void Start()
     {
         // Evaluates based on the Source setting
-        float currentMax = storage.Evaluate(maxHealth);
+        float currentMax = maxHealth.Evaluate(storage);
         Debug.Log($"Max Health: {currentMax}");
     }
 }

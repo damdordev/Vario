@@ -28,13 +28,13 @@ namespace Damdor.Vario.Tests
             storage.AddVariable(variable);
 
             Assert.That(storage.HasVariable<int>("TestInt"), Is.True);
-            Assert.That(storage.Evaluate<int>("TestInt"), Is.EqualTo(10));
+            Assert.That(VarioValue<int>.FromStorage("TestInt").Evaluate(storage), Is.EqualTo(10));
         }
 
         [Test]
         public void Evaluate_ReturnsDefaultValue_WhenVariableNotFound()
         {
-            var result = storage.Evaluate("NonExistent", 5);
+            var result = VarioValue<int>.FromStorage("NonExistent").Evaluate(storage, 5);
             Assert.That(result, Is.EqualTo(5));
         }
 
@@ -44,7 +44,7 @@ namespace Damdor.Vario.Tests
             var variable = new StringVarioVariable { Name = "TestString", Value = "Hello" };
             storage.AddVariable(variable);
 
-            var result = storage.Evaluate<string>("TestString");
+            var result = VarioValue<string>.FromStorage("TestString").Evaluate(storage);
             Assert.That(result, Is.EqualTo("Hello"));
         }
 
@@ -56,7 +56,7 @@ namespace Damdor.Vario.Tests
             globalStorage.AddVariable(variable);
 
             VarioSettings.RegisterGlobalStorage(globalStorage);
-            var result = storage.Evaluate<float>("TestFloat");
+            var result = VarioValue<float>.FromStorage("TestFloat").Evaluate(storage);
             Assert.That(result, Is.EqualTo(3.14f));
         }
 
@@ -71,7 +71,7 @@ namespace Damdor.Vario.Tests
             var localVariable = new IntVarioVariable { Name = "TestInt", Value = 200 };
             storage.AddVariable(localVariable);
 
-            var result = storage.Evaluate<int>("TestInt");
+            var result = VarioValue<int>.FromStorage("TestInt").Evaluate(storage);
             Assert.That(result, Is.EqualTo(200));
         }
 
@@ -84,7 +84,7 @@ namespace Damdor.Vario.Tests
                 Value = 42
             };
 
-            var result = storage.Evaluate(storageValue);
+            var result = storageValue.Evaluate(storage);
             Assert.That(result, Is.EqualTo(42));
         }
 
@@ -100,7 +100,7 @@ namespace Damdor.Vario.Tests
                 Name = "StoredInt"
             };
 
-            var result = storage.Evaluate(storageValue);
+            var result = storageValue.Evaluate(storage);
             Assert.That(result, Is.EqualTo(99));
         }
 
@@ -118,7 +118,7 @@ namespace Damdor.Vario.Tests
                 Name = "StoredInt"
             };
 
-            var result = storage.Evaluate(storageValue);
+            var result = storageValue.Evaluate(storage);
             Assert.That(result, Is.EqualTo(99));
         }
 
@@ -131,7 +131,7 @@ namespace Damdor.Vario.Tests
             var success = storage.UpdateVariable("UpdateTest", 2);
             
             Assert.That(success, Is.True);
-            Assert.That(storage.Evaluate<int>("UpdateTest"), Is.EqualTo(2));
+            Assert.That( VarioValue<int>.FromStorage("UpdateTest").Evaluate(storage), Is.EqualTo(2));
         }
 
         [Test]
@@ -171,7 +171,7 @@ namespace Damdor.Vario.Tests
             var variable = new GuidVarioVariable { Name = "TestGuid", Value = expectedGuid };
             storage.AddVariable(variable);
 
-            var result = storage.Evaluate<Guid>("TestGuid");
+            var result = VarioValue<Guid>.FromStorage("TestGuid").Evaluate(storage);
             Assert.That(result, Is.EqualTo(expectedGuid));
         }
 

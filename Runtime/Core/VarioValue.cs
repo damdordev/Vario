@@ -45,7 +45,41 @@ namespace Damdor.Vario
             get => value;
             set  => this.value = value;
         }
+
+        /// <summary>
+        /// Evaluates the value based on its source.
+        /// If source is <c>Raw</c>, returns <see cref="Value"/>.
+        /// If source is <c>Storage</c>, attempts to retrieve the value from the provided <paramref name="storage"/>.
+        /// </summary>
+        /// <param name="storage">The storage to look up the value in if source is <c>Storage</c>. Can be null</param>
+        /// <param name="defaultValue">The value to return if the variable is not found in storage.</param>
+        /// <returns>The evaluated value.</returns>
+        public T Evaluate(VarioStorage storage, T defaultValue = default)
+            => VarioInternalHelper.Evaluate(storage, this, defaultValue);
+
+        /// <summary>
+        /// Creates a <see cref="VarioValue{T}"/> initialized with a raw value.
+        /// </summary>
+        /// <param name="value">The raw value to store.</param>
+        /// <returns>A new instance configured for <c>ValueSource.Raw</c>.</returns>
+        public static VarioValue<T> Raw(T value) => new()
+        {
+            Source = ValueSource.Raw,
+            Value = value
+        };
         
+        /// <summary>
+        /// Creates a <see cref="VarioValue{T}"/> initialized to reference a variable in storage.
+        /// </summary>
+        /// <param name="name">The name of the variable to reference.</param>
+        /// <returns>A new instance configured for <c>ValueSource.Storage</c>.</returns>
+        public static VarioValue<T> FromStorage(string name) => new()
+        {
+            Source = ValueSource.Storage,
+            Name = name
+        };
+        
+        public static implicit operator VarioValue<T>(T value) => new() { source = ValueSource.Raw, Value = value };
         
         [SerializeField] private ValueSource source;
         [SerializeField] private string name;
@@ -100,6 +134,41 @@ namespace Damdor.Vario
             get => VarioSettings.FromSerializable<T, TSerializable>(value);
             set => this.value = VarioSettings.ToSerializable<T, TSerializable>(value);
         }
+        
+        /// <summary>
+        /// Evaluates the value based on its source.
+        /// If source is <c>Raw</c>, returns <see cref="Value"/>.
+        /// If source is <c>Storage</c>, attempts to retrieve the value from the provided <paramref name="storage"/>.
+        /// </summary>
+        /// <param name="storage">The storage to look up the value in if source is <c>Storage</c>. Can be null.</param>
+        /// <param name="defaultValue">The value to return if the variable is not found in storage.</param>
+        /// <returns>The evaluated value.</returns>
+        public T Evaluate(VarioStorage storage, T defaultValue = default)
+            => VarioInternalHelper.Evaluate(storage, this, defaultValue);
+        
+        /// <summary>
+        /// Creates a <see cref="VarioValue{T, TSerializable}"/> initialized with a raw value.
+        /// </summary>
+        /// <param name="value">The raw value to store.</param>
+        /// <returns>A new instance configured for <c>ValueSource.Raw</c>.</returns>
+        public static VarioValue<T, TSerializable> Raw(T value) => new()
+        {
+            Source = ValueSource.Raw,
+            Value = value
+        };
+        
+        /// <summary>
+        /// Creates a <see cref="VarioValue{T, TSerializable}"/> initialized to reference a variable in storage.
+        /// </summary>
+        /// <param name="name">The name of the variable to reference.</param>
+        /// <returns>A new instance configured for <c>ValueSource.Storage</c>.</returns>
+        public static VarioValue<T, TSerializable> FromStorage(string name) => new()
+        {
+            Source = ValueSource.Storage,
+            Name = name
+        };
+        
+        public static implicit operator VarioValue<T, TSerializable>(T value) => new() { source = ValueSource.Raw, Value = value };
         
         [SerializeField] private ValueSource source;
         [SerializeField] private string name;
