@@ -13,7 +13,7 @@ namespace Damdor.Vario
         /// <summary>
         /// Gets the list of all variables registered in this storage.
         /// </summary>
-        public List<VarioVariable> Variables => variables;
+        public IReadOnlyList<VarioVariable> Variables => variables;
         
         [SerializeReference] private List<VarioVariable> variables = new();
 

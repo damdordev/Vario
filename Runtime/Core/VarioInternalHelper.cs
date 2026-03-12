@@ -36,7 +36,7 @@ namespace Damdor.Vario
             return defaultValue;
         }
         
-        private static bool TryEvaluate<T>(List<VarioVariable> variables, string name, out T value)
+        private static bool TryEvaluate<T>(IReadOnlyList<VarioVariable> variables, string name, out T value)
         {
             foreach (var variable in variables)
             {
