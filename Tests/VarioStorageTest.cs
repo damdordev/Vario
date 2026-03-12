@@ -134,14 +134,13 @@ namespace Damdor.Vario.Tests
         {
             storage.Update("TestInt", 10);
 
-            Assert.Equals(10, storage.Get<int>("TestInt"));
+            Assert.AreEqual(10, storage.Get<int>("TestInt"));
         }
 
         [Test]
-        public void GetVariable_ReturnsNull_WhenVariableDoesNotExist()
+        public void GetVariable_ReturnsDefaultValue_WhenVariableDoesNotExist()
         {
-            var retrieved = storage.Get<int>("NonExistent");
-            Assert.That(retrieved, Is.Null);
+            Assert.AreEqual(10, storage.Get<int>("NonExistent", 10));
         }
 
         [Test]
@@ -151,9 +150,10 @@ namespace Damdor.Vario.Tests
                 guid => guid.ToString(),
                 Guid.Parse
             );
+            VarioSettings.RegisterVariableType<GuidVarioVariable>();
             
             var expectedGuid = Guid.NewGuid();
-            storage.Update<Guid>("TestGuid", expectedGuid);
+            storage.Update("TestGuid", expectedGuid);
 
             var result = VarioValue<Guid>.FromStorage("TestGuid").Evaluate(storage);
             Assert.That(result, Is.EqualTo(expectedGuid));

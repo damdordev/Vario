@@ -261,12 +261,12 @@ namespace Damdor.Vario
             return converter(serializableValue);
         }
         
-        internal static VarioVariable<T> Create<T>()
+        internal static TypedVarioVariable<T> Create<T>()
         {
             EnsureInit();
             if (valueToVariableType.TryGetValue(typeof(T), out var type))
             {
-                return (VarioVariable<T>)Activator.CreateInstance(type);
+                return (TypedVarioVariable<T>)Activator.CreateInstance(type);
             }
             return null;
         }
