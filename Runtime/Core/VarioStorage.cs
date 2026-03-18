@@ -70,7 +70,7 @@ namespace Damdor.Vario
         {
             for (var i = 0; i < variables.Count; i++)
             {
-                if (variables[i] is not TypedVarioVariable<T> || variables[i].Name != name) continue;
+                if (variables[i] is not VarioVariable<T> || variables[i].Name != name) continue;
                 variables.RemoveAt(i);
                 return true;
             }
@@ -78,11 +78,11 @@ namespace Damdor.Vario
             return false;
         }
         
-        private TypedVarioVariable<T> GetVariableImpl<T>(string name)
+        private VarioVariable<T> GetVariableImpl<T>(string name)
         {
             foreach (var variable in variables)
             {
-                if (variable is TypedVarioVariable<T> typedVariable && variable.Name == name) return typedVariable;
+                if (variable is VarioVariable<T> typedVariable && variable.Name == name) return typedVariable;
             }
 
             return null;

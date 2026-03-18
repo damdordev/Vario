@@ -33,7 +33,7 @@ namespace Damdor.Vario
         {
             foreach (var variable in variables)
             {
-                if (variable.Name != name || variable.Type != typeof(T) || variable is not TypedVarioVariable<T> typedVariable) continue;
+                if (variable.Name != name || variable.Type != typeof(T) || variable is not VarioVariable<T> typedVariable) continue;
                 value = typedVariable.Value;
                 return true;
             }

@@ -46,12 +46,12 @@ namespace Damdor.Vario
         private static readonly Dictionary<Type, Type> valueToVariableType = new();
         private static readonly Dictionary<Type, string> variableTypeToName = new();
         
-        public static TypedVarioVariable<T> Create<T>()
+        public static VarioVariable<T> Create<T>()
         {
             EnsureInit();
             if (valueToVariableType.TryGetValue(typeof(T), out var type))
             {
-                return (TypedVarioVariable<T>)Activator.CreateInstance(type);
+                return (VarioVariable<T>)Activator.CreateInstance(type);
             }
             return null;
         }

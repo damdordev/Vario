@@ -21,30 +21,15 @@ namespace Damdor.Vario
     }
 
     /// <summary>
-    /// A generic base class for variables that store a specific type of value.
-    /// </summary>
-    /// <typeparam name="T">The type of the value being stored.</typeparam>
-    [Serializable]
-    public abstract class TypedVarioVariable<T> : VarioVariable
-    {
-        public override Type Type => typeof(T);
-        
-        /// <summary>
-        /// Gets or sets the value of the variable.
-        /// </summary>
-        public abstract T Value { get; set; }
-    }
-
-    /// <summary>
     /// A generic base class for variables of serializable types.
     /// </summary>
     /// <typeparam name="T">The type of the value being stored.</typeparam>
     [Serializable]
-    public class VarioVariable<T> : TypedVarioVariable<T>
+    public class VarioVariable<T> : VarioVariable
     {
         public override Type Type => typeof(T);
 
-        public override T Value
+        public T Value
         {
             get => value;
             set => this.value = value;
