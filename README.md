@@ -72,66 +72,56 @@ public class HealthComponent : MonoBehaviour, IVarioStorageSource
     }
 }
 ```
+## Settings file
 
-## Global Storage
+To modify default value behavior you can create a file <b>vario_settings.json</b> in any <b>Resources</b> folder.
 
-You can register global storages that are accessible throughout your application. This is useful for shared configuration or game-wide state.
+### Creating custom types
 
 ```csharp
-using UnityEngine;
-using Damdor.Vario;
-
-public class GameInitializer : MonoBehaviour
+namespace MyNamespace
 {
-    [UnityEditor.Callbacks.DidReloadScripts]
-    private static void OnScriptsReloaded()
-    {
-        InitializeGlobalVariableStorages();
-    }
-    
-    private void Awake()
-    {
-        InitializeGlobalVariableStorages();
-    }
-    
-    private void InitializeGlobalVariableStorages()
-    {
-        // find your custom global storage
-        GlobalVarioStorage myGlobalStorage = ...
-        
-        // Register a custom global storage
-        VarioSettings.RegisterGlobalStorage(myGlobalStorage.Storage);
-
-        // Register a default global storage (e.g., Easing curves)
-        VarioSettings.RegisterGlobalStorage(VarioDefaultStorage.Easing);        
-    }
+    [Serializable]
+    public class MyCustomVarioVariable : VarioVariable<MyCustomType> { }
 }
 ```
 
-## Custom Types
+then in your <b>vario_settings.json</b> you need to add that type:
 
-### Creating a Custom Variable
-
-To add a new type, inherit from `Variable<T>`.
-
-```csharp
-using System;
-using Damdor.Vario;
-using UnityEngine;
-
-[Serializable]
-[VarioVariableName("myCustomType")]
-public class MyCustomVarioVariable : VarioVariable<MyCustomType> { }
-
-public class VariableStorageIntegration
-{ 
-    [UnityEditor.Callbacks.DidReloadScripts]
-    private static void OnScriptsReloaded()
-    {
-        VarioSettings.RegisterVariableType<MyCustomVarioVariable>();
-    }
+```json
+{
+  "types": {
+    "myCustomType": "MyNamespace.MyCustomVarioVariable"
+  }
 }
 ```
+
+### Global Storage
+
+You can register global storages that are accessible throughout your application.
+To do this create scriptable object <b>VarioGlobalStorage</b> in <b>Resources</b> folder
+(Create/Damdor/Vario/Global storage) and add it to settings:
+
+```json
+{
+  "globalStorages": [
+    "MyCustomGlobalStorage"
+  ]  
+}
+```
+
+### Default global storages
+
+Vario has default global storages you can use. Right now only one is supported: <b>Vario_DefaultEasing</b>.
+To use it you need to add it to <b>vario_settings.json</b>:
+
+```json
+{
+  "globalStorages": [
+    "Vario_DefaultEasing"
+  ]  
+}
+```    
 
 ## Supported Types
 

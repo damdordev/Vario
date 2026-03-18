@@ -11,13 +11,6 @@ namespace Damdor.Vario.Tests
         public void SetUp()
         {
             storage = new VarioStorage();
-            VarioSettings.ResetToInitialSettings();
-        }
-
-        [TearDown]
-        public void TearDown()
-        {
-            VarioSettings.ResetToInitialSettings();
         }
 
         [Test]
@@ -46,30 +39,6 @@ namespace Damdor.Vario.Tests
         }
 
         [Test]
-        public void Evaluate_WithParent_ReturnsParentValue_WhenVariableNotFoundLocally()
-        {
-            var globalStorage = new VarioStorage();
-            globalStorage.Update("TestFloat", 3.14f);
-
-            VarioSettings.RegisterGlobalStorage(globalStorage);
-            var result = VarioValue<float>.FromStorage("TestFloat").Evaluate(storage);
-            Assert.That(result, Is.EqualTo(3.14f));
-        }
-
-        [Test]
-        public void Evaluate_WithParent_ReturnsLocalValue_WhenVariableExistsLocally()
-        {
-            var globalStorage = new VarioStorage();
-            globalStorage.Update("TestInt", 100);
-            VarioSettings.RegisterGlobalStorage(globalStorage);
-
-            storage.Update("TestInt", 200);
-
-            var result = VarioValue<int>.FromStorage("TestInt").Evaluate(storage);
-            Assert.That(result, Is.EqualTo(200));
-        }
-
-        [Test]
         public void Evaluate_StorageValue_RawSource_ReturnsRawValue()
         {
             var storageValue = new VarioValue<int>
@@ -86,23 +55,6 @@ namespace Damdor.Vario.Tests
         public void Evaluate_StorageValue_StorageSource_ReturnsStoredValue()
         {
             storage.Update("StoredInt", 99);
-
-            var storageValue = new VarioValue<int>
-            {
-                Source = ValueSource.Storage,
-                Name = "StoredInt"
-            };
-
-            var result = storageValue.Evaluate(storage);
-            Assert.That(result, Is.EqualTo(99));
-        }
-
-        [Test]
-        public void Evaluate_StorageValue_WithParent_ReturnsParentValue()
-        {
-            var globalStorage = new VarioStorage();
-            globalStorage.Update("StoredInt", 99);
-            VarioSettings.RegisterGlobalStorage(globalStorage);
 
             var storageValue = new VarioValue<int>
             {

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using Damdor.Foundation.Editor;
 using UnityEditor;
 using UnityEditorInternal;
@@ -65,7 +64,7 @@ namespace Damdor.Vario.Editor
                 GUI.enabled = false;
                 EditorGUI.TextField(
                     new Rect(rect.x, rect.y, VariableTypeLength, EditorGUIUtility.singleLineHeight),
-                    GetTypeName(variable.GetType())
+                    VarioSettings.GetVariableName(variable.GetType())
                 );
                 GUI.enabled = wasEnabled;
                 
@@ -81,8 +80,8 @@ namespace Damdor.Vario.Editor
 
             reorderableList.onAddDropdownCallback += (rect, _) =>
             {
-                var types = VarioSettings.SupportedTypes.OrderBy(GetTypeName).ToList();
-                new HierarchicalDropdown<Type>(types, GetTypeName, type =>
+                var types = VarioSettings.SupportedTypes.OrderBy(VarioSettings.GetVariableName).ToList();
+                new HierarchicalDropdown<Type>(types, VarioSettings.GetVariableName, type =>
                 {
                     property.InsertArrayElementAtIndex(property.arraySize);
                     var element = property.GetArrayElementAtIndex(property.arraySize - 1);
@@ -94,17 +93,7 @@ namespace Damdor.Vario.Editor
             propertyPathToReorderableList.Add(path, reorderableList);
             return reorderableList;
         }
-
-        private string GetTypeName(Type type)
-        {
-            if(variableTypeToName.TryGetValue(type, out var result)) return result;
-
-            var attr = type.GetCustomAttribute<VarioVariableName>();
-            var name = attr != null ? attr.Name : type.Name;
-            variableTypeToName[type] = name;
-
-            return name;
-        }
+        
         
     }
 }

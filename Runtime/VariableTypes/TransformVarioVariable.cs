@@ -4,8 +4,5 @@ using UnityEngine;
 namespace Damdor.Vario
 {
     [Serializable]
-    [VarioVariableName("transform")]
-    public class TransformVarioVariable : VarioVariable<Transform>
-    {
-    }
+    public class TransformVarioVariable : VarioVariable<Transform> { }
 }

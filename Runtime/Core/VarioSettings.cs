@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Damdor.Foundation;
+using UnityEditor;
 using UnityEngine;
 
 namespace Damdor.Vario
@@ -7,7 +9,7 @@ namespace Damdor.Vario
     /// <summary>
     /// Provides global configuration and registry settings for the Variable Storage system.
     /// </summary>
-    public static class VarioSettings
+    public class VarioSettings : AssetPostprocessor
     {
         /// <summary>
         /// Gets a list of all <see cref="Type"/> objects currently supported and registered in the system.
@@ -42,111 +44,9 @@ namespace Damdor.Vario
         private static readonly List<Type> supportedTypes = new();
         private static readonly List<VarioStorage> globalStorages = new();
         private static readonly Dictionary<Type, Type> valueToVariableType = new();
-
-        /// <summary>
-        /// Registers a new variable type to be recognized by the storage system.
-        /// </summary>
-        /// <remarks>
-        /// The list is used only for creating a proper editor therefore new types should be created in editor script
-        /// in response from compilation.
-        /// </remarks>
-        /// <example>
-        /// <code>
-        /// <![CDATA[
-        /// public class VariableStorageIntegration
-        /// {
-        ///    [UnityEditor.Callbacks.DidReloadScripts]
-        ///    private static void OnScriptsReloaded()
-        ///    {
-        ///        VariableStorageSettings.RegisterVariableType<MyCustomVariableType>();
-        ///    }
-        ///
-        /// }
-        /// ]]>
-        /// </code>
-        /// </example>
-        /// <typeparam name="T">The specific class deriving from <see cref="VarioVariable"/> to register.</typeparam>
-        public static void RegisterVariableType<T>() where T : VarioVariable
-        {
-            EnsureInit();
-            DoRegisterVariableType<T>();
-        }
-
-        /// <summary>
-        /// Registers a custom <see cref="VarioStorage"/> instance as a global storage.
-        /// </summary>
-        /// <param name="globalStorage">The variable storage instance to register globally.</param>
-        public static void RegisterGlobalStorage(VarioStorage globalStorage)
-        {
-            EnsureInit();
-            globalStorages.Add(globalStorage);
-        }
-
-        /// <summary>
-        /// Registers a predefined default global storage based on the provided enum value.
-        /// </summary>
-        /// <param name="storage">The type of default global storage to register (e.g., Easing).</param>
-        public static void RegisterGlobalStorage(VarioDefaultStorage storage)
-        {
-            switch (storage)
-            {
-                case VarioDefaultStorage.Easing:
-                    RegisterGlobalStorage(
-                        Resources.Load<VarioGlobalStorage>("Vario_DefaultEasing").Storage
-                    );
-                break;
-                default:
-                    throw new ArgumentOutOfRangeException(nameof(storage), storage, null);
-            }
-            
-        }
+        private static readonly Dictionary<Type, string> variableTypeToName = new();
         
-        /// <summary>
-        /// Clears all custom registrations and restores the system to its original default state. This method should
-        /// be invoked before your game restarts if you register any custom types
-        /// </summary>
-        public static void ResetToInitialSettings()
-        {
-            ResetSupportedTypes();
-            globalStorages.Clear();
-            init = true;
-        }
-
-        private static void ResetSupportedTypes()
-        {
-            supportedTypes.Clear();
-            valueToVariableType.Clear();
-
-            DoRegisterVariableType<BoolVarioVariable>();
-            DoRegisterVariableType<IntVarioVariable>();
-            DoRegisterVariableType<FloatVarioVariable>();
-            DoRegisterVariableType<StringVarioVariable>();
-            DoRegisterVariableType<ColorVarioVariable>();
-            DoRegisterVariableType<Vector2VarioVariable>();
-            DoRegisterVariableType<Vector3VarioVariable>();
-            DoRegisterVariableType<GameObjectVarioVariable>();
-            DoRegisterVariableType<RectVarioVariable>();
-            DoRegisterVariableType<AnimationCurveVarioVariable>();
-            DoRegisterVariableType<AudioClipVarioVariable>();
-            DoRegisterVariableType<MaterialVarioVariable>();
-            DoRegisterVariableType<ShaderVarioVariable>();
-            DoRegisterVariableType<MeshVarioVariable>();
-            DoRegisterVariableType<TextureVarioVariable>();
-            DoRegisterVariableType<SpriteVarioVariable>();
-            DoRegisterVariableType<TextAssetVarioVariable>();
-            DoRegisterVariableType<LayerMaskVarioVariable>();
-            DoRegisterVariableType<TransformVarioVariable>();
-            DoRegisterVariableType<RectTransformVarioVariable>();
-            DoRegisterVariableType<CanvasGroupVarioVariable>();
-            DoRegisterVariableType<GraphicVarioVariable>();
-            DoRegisterVariableType<ImageVarioVariable>();
-            
-#if TEXT_MESH_PRO
-            DoRegisterVariableType<TMPTextVarioVariable>();
-#endif
-        }
-        
-        internal static TypedVarioVariable<T> Create<T>()
+        public static TypedVarioVariable<T> Create<T>()
         {
             EnsureInit();
             if (valueToVariableType.TryGetValue(typeof(T), out var type))
@@ -155,20 +55,77 @@ namespace Damdor.Vario
             }
             return null;
         }
-        
-        private static void DoRegisterVariableType<T>() where T : VarioVariable
-        {
-            if(supportedTypes.Contains(typeof(T))) return;
-            supportedTypes.Add(typeof(T));
 
-            var variable = Activator.CreateInstance<T>();
-            valueToVariableType[variable.Type] = typeof(T);
+        public static string GetVariableName(Type type)
+        {
+            if (!variableTypeToName.TryGetValue(type, out var name)) name = "";
+            return name;
         }
 
         private static void EnsureInit()
         {
             if (init) return;
-            ResetToInitialSettings();
+
+            supportedTypes.Clear();
+            globalStorages.Clear();
+            valueToVariableType.Clear();
+            variableTypeToName.Clear();
+            
+            var settingsAssets = Resources.LoadAll<TextAsset>("vario_settings");
+            for (var i = 0; i < settingsAssets.Length; ++i)
+            {
+                var json = settingsAssets[i].text;
+                var settingsData = (Dictionary<string, object>) Json.Deserialize(json);
+                Resources.UnloadAsset(settingsAssets[i]);
+
+                if (settingsData != null && settingsData.TryGetValue("types", out var types))
+                {
+                    ProcessTypesFromSettingsData((Dictionary<string, object>) types);
+                }
+                if (settingsData != null && settingsData.TryGetValue("globalStorages", out var globalStorages))
+                {
+                    ProcessGlobalStoragesFromSettingsData((List<object>) globalStorages);
+                }
+            }
+
+            init = true;
+        }
+        
+
+        private static void ProcessTypesFromSettingsData(Dictionary<string, object> types)
+        {
+            foreach (var pair in types)
+            {
+                var type = ReflectionHelper.FindType((string) pair.Value);
+                if (type != null) RegisterVariableType(type, pair.Key);
+            }
+        }
+        
+        private static void ProcessGlobalStoragesFromSettingsData(List<object> storages)
+        {
+            foreach (string storageName in storages)
+            {
+                var storage = Resources.Load<VarioGlobalStorage>(storageName);
+                if(storage != null) globalStorages.Add(storage.Storage);
+            }
+        }  
+        
+        private static void RegisterVariableType(Type type, string name)
+        {
+            if(supportedTypes.Contains(type)) return;
+            supportedTypes.Add(type);
+            variableTypeToName[type] = name;
+ 
+            var variable = (VarioVariable) Activator.CreateInstance(type);
+            valueToVariableType[variable.Type] = type;
+        }
+
+        void OnPreprocessAsset()
+        {
+            if (assetImporter.assetPath.EndsWith("vario_settings.json"))
+            {
+                init = false;
+            }
         }
         
     }
