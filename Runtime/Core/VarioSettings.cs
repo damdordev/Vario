@@ -58,7 +58,7 @@ namespace Damdor.Vario
 
         public static string GetVariableName(Type type)
         {
-            if (!variableTypeToName.TryGetValue(type, out var name)) name = "";
+            var name = variableTypeToName.GetValueOrDefault(type, "");
             return name;
         }
 
@@ -72,19 +72,19 @@ namespace Damdor.Vario
             variableTypeToName.Clear();
             
             var settingsAssets = Resources.LoadAll<TextAsset>("vario_settings");
-            for (var i = 0; i < settingsAssets.Length; ++i)
+            foreach (var t in settingsAssets)
             {
-                var json = settingsAssets[i].text;
+                var json = t.text;
                 var settingsData = (Dictionary<string, object>) Json.Deserialize(json);
-                Resources.UnloadAsset(settingsAssets[i]);
+                Resources.UnloadAsset(t);
 
                 if (settingsData != null && settingsData.TryGetValue("types", out var types))
                 {
                     ProcessTypesFromSettingsData((Dictionary<string, object>) types);
                 }
-                if (settingsData != null && settingsData.TryGetValue("globalStorages", out var globalStorages))
+                if (settingsData != null && settingsData.TryGetValue("globalStorages", out var storages))
                 {
-                    ProcessGlobalStoragesFromSettingsData((List<object>) globalStorages);
+                    ProcessGlobalStoragesFromSettingsData((List<object>) storages);
                 }
             }
 

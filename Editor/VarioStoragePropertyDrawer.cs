@@ -15,7 +15,6 @@ namespace Damdor.Vario.Editor
         private const float Spacing = 10f;
 
         private readonly Dictionary<string, ReorderableList> propertyPathToReorderableList = new();
-        private readonly Dictionary<Type, string> variableTypeToName = new();
         
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
