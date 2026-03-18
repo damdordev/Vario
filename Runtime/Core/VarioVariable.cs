@@ -60,32 +60,4 @@ namespace Damdor.Vario
         [SerializeField] private string name;
     }
     
-    /// <summary>
-    /// A generic base class for variables of non-serializable types. The class stores a variable with <c>TSerializable</c>
-    /// type and exposes it with <c>T</c>
-    /// </summary>
-    /// <remarks>
-    /// To use variable of that type you have to register conversion via <c>VariableStorageSettings.RegisterConverter</c>
-    /// </remarks>
-    /// <typeparam name="T">The type of the value being exposed</typeparam>
-    /// <typeparam name="TSerialize">The type of the value being stored</typeparam>
-    [Serializable]
-    public abstract class VarioVariable<T, TSerialize> : TypedVarioVariable<T>
-    {
-        public override T Value
-        {
-            get => VarioSettings.FromSerializable<T, TSerialize>(value);
-            set => this.value = VarioSettings.ToSerializable<T, TSerialize>(value);
-        }
-        
-        public override string Name
-        {
-            get => name;
-            set => name = value;
-        }
-
-        [SerializeField] private TSerialize value;
-        [SerializeField] private string name;
-    }
-    
 }

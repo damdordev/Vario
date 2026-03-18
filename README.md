@@ -6,7 +6,7 @@ of variables with support for various types.
 ## Features
 
 *   **Typed Variables**: Strongly typed variable storage (Int, Float, String, Vector3, etc.).
-*   **Serialization Support**: Built-in support for Unity serialization, including handling of non-serializable types via converters.
+*   **Serialization Support**: Built-in support for Unity serialization.
 *   **Hierarchical Evaluation**: Evaluate variables with fallback to parent storage.
 *   **Flexible Input**: `VarioValue<T>` allows fields in your scripts to easily switch between a constant value and a variable reference.
 *   **Extensible**: Easy to add custom variable types and converters.
@@ -131,31 +131,6 @@ public class VariableStorageIntegration
         VarioSettings.RegisterVariableType<MyCustomVarioVariable>();
     }
 }
-```
-
-### Handling Non-Serializable Types
-
-If you have a type that Unity cannot serialize directly, use `VarioVariable<T, TSerializable>` and register a converter.
-
-1.  **Define the Variable Class**:
-
-```csharp
-[Serializable]
-[VarioVariableName("dateTime")]
-public class DateTimeVarioVariable : VarioVariable<DateTime, SerializableDateTime> { }
-```
-
-2.  **Register the Converter**:
-
-You need to register the converter before using the variable, typically in an initialization phase.
-You should do this in two places: on the very start of your game (for runtime) and after each script
-compilation (for editor purpose)
-
-```csharp
-VarioSettings.RegisterConverter<DateTime, SerializableDateTime>(
-    dateTime => new SerializableDateTime(dateTime), // To Serializable
-    serializable => serializable.ToDateTime()       // From Serializable
-);
 ```
 
 ## Supported Types

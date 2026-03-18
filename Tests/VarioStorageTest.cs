@@ -1,4 +1,3 @@
-using System;
 using NUnit.Framework;
 
 namespace Damdor.Vario.Tests
@@ -138,24 +137,6 @@ namespace Damdor.Vario.Tests
         {
             Assert.AreEqual(10, storage.Get("NonExistent", 10));
         }
-
-        [Test]
-        public void Evaluate_ComplexVariable_ReturnsConvertedValue()
-        {
-            VarioSettings.RegisterConverter<Guid, string>(
-                guid => guid.ToString(),
-                Guid.Parse
-            );
-            VarioSettings.RegisterVariableType<GuidVarioVariable>();
-            
-            var expectedGuid = Guid.NewGuid();
-            storage.Update("TestGuid", expectedGuid);
-
-            var result = VarioValue<Guid>.FromStorage("TestGuid").Evaluate(storage);
-            Assert.That(result, Is.EqualTo(expectedGuid));
-        }
-
-        [Serializable]
-        private class GuidVarioVariable : VarioVariable<Guid, string> { }
+        
     }
 }

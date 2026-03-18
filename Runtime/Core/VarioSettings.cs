@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Damdor.Foundation;
 using UnityEngine;
 
 namespace Damdor.Vario
@@ -10,14 +9,6 @@ namespace Damdor.Vario
     /// </summary>
     public static class VarioSettings
     {
-        private class ConverterData
-        {
-            public Type Type;
-            public Type SerializableType;
-            public Delegate ToSerializable;
-            public Delegate FromSerializable;
-        }
-        
         /// <summary>
         /// Gets a list of all <see cref="Type"/> objects currently supported and registered in the system.
         /// If you need to add new supported type then use method <c>RegisterVariableType</c> 
@@ -49,7 +40,6 @@ namespace Damdor.Vario
         private static bool init;
         
         private static readonly List<Type> supportedTypes = new();
-        private static readonly List<ConverterData> converters = new();
         private static readonly List<VarioStorage> globalStorages = new();
         private static readonly Dictionary<Type, Type> valueToVariableType = new();
 
@@ -83,74 +73,6 @@ namespace Damdor.Vario
         }
 
         /// <summary>
-        /// Registers a pair of conversion delegates to handle transformations between a runtime type 
-        /// and its serializable representation.
-        /// </summary>
-        /// <c>Converters are required both for creating a proper editor and in runtime</c>
-        /// <typeparam name="T">The runtime data type used in game logic.</typeparam>
-        /// <typeparam name="TSerializable">The data type used for serialization (e.g., a primitive or DTO).</typeparam>
-        /// <param name="toSerializable">A delegate that converts the runtime type <typeparamref name="T"/> to <typeparamref name="TSerializable"/>.</param>
-        /// <param name="fromSerializable">A delegate that converts the serializable type <typeparamref name="TSerializable"/> back to <typeparamref name="T"/>.</param>
-        /// /// <example>
-        /// <code>
-        /// <![CDATA[
-        /// public class VariableStorageIntegration
-        /// {
-        ///    // Unity cannot serialize this class. It can be a value from external library
-        ///    public class MyCustomVariable
-        ///    {
-        ///        public int value;
-        ///        // some big logic
-        ///    }
-        ///
-        ///    [Serializable]
-        ///    public class MyCustomSerializableVariable
-        ///    {
-        ///        public int value;
-        ///    }
-        /// 
-        ///    [UnityEditor.Callbacks.DidReloadScripts]
-        ///    private static void OnScriptsReloaded()
-        ///    {
-        ///        Init();
-        ///    }
-        ///
-        ///    public void StartGame()
-        ///    {
-        ///        Init();
-        ///    }
-        ///
-        ///    public void StopGame()
-        ///    {
-        ///        VariableStorageSettings.ResetToInitialSettings();
-        ///    }
-        ///
-        ///    public void Init()
-        ///    {
-        ///    {
-        ///        VariableStorageSettings.RegisterVariableType<MyCustomVariable>();
-        ///        VariableStorageSettings.RegisterConverter<MyCustomVariable, MyCustomSerializableVariable>(Convert, Convert);
-        ///    }
-        ///
-        ///    private MyCustomSerializableVariable Convert(MyCustomVariable x)
-        ///        => new MyCustomSerializableVariable { Value = x.Value };
-        ///
-        ///    private MyCustomVariable Convert(MyCustomSerializableVariable x)
-        ///        => new MyCustomVariable { Value = x.Value };        
-        /// 
-        /// }
-        /// ]]>
-        /// </code>
-        /// </example>
-        public static void RegisterConverter<T, TSerializable>(
-            Converter<T, TSerializable> toSerializable,
-            Converter<TSerializable, T> fromSerializable)
-        {
-            EnsureInit();
-            DoRegisterConverter(toSerializable, fromSerializable);
-        }
-
-        /// <summary>
         /// Registers a custom <see cref="VarioStorage"/> instance as a global storage.
         /// </summary>
         /// <param name="globalStorage">The variable storage instance to register globally.</param>
@@ -181,12 +103,11 @@ namespace Damdor.Vario
         
         /// <summary>
         /// Clears all custom registrations and restores the system to its original default state. This method should
-        /// be invoked before your game restarts if you register any custom types or converterss
+        /// be invoked before your game restarts if you register any custom types
         /// </summary>
         public static void ResetToInitialSettings()
         {
             ResetSupportedTypes();
-            ResetConverters();
             globalStorages.Clear();
             init = true;
         }
@@ -219,45 +140,10 @@ namespace Damdor.Vario
             DoRegisterVariableType<CanvasGroupVarioVariable>();
             DoRegisterVariableType<GraphicVarioVariable>();
             DoRegisterVariableType<ImageVarioVariable>();
-
-#if DAMDOR_FOUNDATION
-            DoRegisterVariableType<DateTimeVarioVariable>();
-            DoRegisterVariableType<TimeSpanVarioVariable>();
-#endif
             
 #if TEXT_MESH_PRO
             DoRegisterVariableType<TMPTextVarioVariable>();
 #endif
-        }
-        
-        private static void ResetConverters()
-        {
-            converters.Clear();
-            
-#if DAMDOR_FOUNDATION
-            DoRegisterConverter<DateTime, SerializableDateTime>(x => x, x => x);
-            DoRegisterConverter<TimeSpan, SerializableTimeSpan>(x => x, x => x);
-#endif
-        }
-
-        public static TSerializable ToSerializable<T, TSerializable>(T value)
-        {
-            EnsureInit();
-            var data = GetConverterData<T, TSerializable>();
-            if (data == null) return default;
-
-            var converter = (Converter<T, TSerializable>) data.ToSerializable;
-            return converter(value);
-        }
-        
-        public static T FromSerializable<T, TSerializable>(TSerializable serializableValue)
-        {
-            EnsureInit();
-            var data = GetConverterData<T, TSerializable>();
-            if (data == null) return default;
-
-            var converter = (Converter<TSerializable, T>) data.FromSerializable;
-            return converter(serializableValue);
         }
         
         internal static TypedVarioVariable<T> Create<T>()
@@ -269,28 +155,6 @@ namespace Damdor.Vario
             }
             return null;
         }
-
-        private static void DoRegisterConverter<T, TSerializable>(
-            Converter<T, TSerializable> toSerializable,
-            Converter<TSerializable, T> fromSerializable)
-        {
-            var data = GetConverterData<T, TSerializable>();
-            if (data != null)
-            {
-                data.ToSerializable = toSerializable;
-                data.FromSerializable = fromSerializable;
-                return;
-            }
-
-            data = new ConverterData
-            {
-                Type = typeof(T),
-                SerializableType = typeof(TSerializable),
-                ToSerializable = toSerializable,
-                FromSerializable = fromSerializable
-            };
-            converters.Add(data);
-        }
         
         private static void DoRegisterVariableType<T>() where T : VarioVariable
         {
@@ -299,19 +163,6 @@ namespace Damdor.Vario
 
             var variable = Activator.CreateInstance<T>();
             valueToVariableType[variable.Type] = typeof(T);
-        }
-        
-        private static ConverterData GetConverterData<T, TSerializable>()
-        {
-            var type = typeof(T);
-            var serializableType = typeof(TSerializable);
-            
-            foreach (var data in converters)
-            {
-                if (data.Type == type && data.SerializableType == serializableType) return data;
-            }
-
-            return null;
         }
 
         private static void EnsureInit()

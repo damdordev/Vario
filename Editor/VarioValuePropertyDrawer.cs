@@ -7,7 +7,6 @@ using UnityEngine;
 namespace Damdor.Vario.Editor
 {
     [CustomPropertyDrawer(typeof(VarioValue<>))]
-    [CustomPropertyDrawer(typeof(VarioValue<,>))]
     public class VarioValuePropertyDrawer : PropertyDrawer
     {
         private const float SourceSize = 0.4f;

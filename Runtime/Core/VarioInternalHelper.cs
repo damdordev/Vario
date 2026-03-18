@@ -11,13 +11,6 @@ namespace Damdor.Vario
             ValueSource.Storage => Evaluate(mainStorage, value.Name, useGlobalStorages, defaultValue),
             _ => throw new ArgumentOutOfRangeException($"Unknown value source: {typeof(T).Name} ")
         };
-
-        public static T Evaluate<T, TSerializable>(VarioStorage storage, VarioValue<T, TSerializable> value, bool useGlobalStorages, T defaultValue) => value.Source switch
-        {
-            ValueSource.Raw => value.Value,
-            ValueSource.Storage => Evaluate(storage, value.Name, useGlobalStorages, defaultValue),
-            _ => throw new ArgumentOutOfRangeException($"Unknown value source: {typeof(T).Name} ")
-        };
         
         private static T Evaluate<T>(VarioStorage mainStorage, string name, bool useGlobalStorages, T defaultValue)
         {
