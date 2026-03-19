@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using Damdor.Foundation;
 using UnityEditor;
-using UnityEngine;
 
 namespace Damdor.Vario
 {
     /// <summary>
     /// Provides global configuration and registry settings for the Variable Storage system.
     /// </summary>
-    public class VarioSettings : AssetPostprocessor
+    public static class VarioSettings
     {
         /// <summary>
         /// Gets a list of all <see cref="Type"/> objects currently supported and registered in the system.
@@ -65,52 +63,22 @@ namespace Damdor.Vario
         private static void EnsureInit()
         {
             if (init) return;
+            
+            Reset();
+            VarioSettingsLoader.Load();
+            init = true;
+        }
 
+        internal static void Reset()
+        {
+            init = false;
             supportedTypes.Clear();
             globalStorages.Clear();
             valueToVariableType.Clear();
             variableTypeToName.Clear();
-            
-            var settingsAssets = Resources.LoadAll<TextAsset>("vario_settings");
-            foreach (var t in settingsAssets)
-            {
-                var json = t.text;
-                var settingsData = (Dictionary<string, object>) Json.Deserialize(json);
-                Resources.UnloadAsset(t);
-
-                if (settingsData != null && settingsData.TryGetValue("types", out var types))
-                {
-                    ProcessTypesFromSettingsData((Dictionary<string, object>) types);
-                }
-                if (settingsData != null && settingsData.TryGetValue("globalStorages", out var storages))
-                {
-                    ProcessGlobalStoragesFromSettingsData((List<object>) storages);
-                }
-            }
-
-            init = true;
         }
         
-
-        private static void ProcessTypesFromSettingsData(Dictionary<string, object> types)
-        {
-            foreach (var pair in types)
-            {
-                var type = ReflectionHelper.FindType((string) pair.Value);
-                if (type != null) RegisterVariableType(type, pair.Key);
-            }
-        }
-        
-        private static void ProcessGlobalStoragesFromSettingsData(List<object> storages)
-        {
-            foreach (string storageName in storages)
-            {
-                var storage = Resources.Load<VarioGlobalStorage>(storageName);
-                if(storage != null) globalStorages.Add(storage.Storage);
-            }
-        }  
-        
-        private static void RegisterVariableType(Type type, string name)
+        internal static void RegisterVariableType(Type type, string name)
         {
             if(supportedTypes.Contains(type)) return;
             supportedTypes.Add(type);
@@ -120,12 +88,9 @@ namespace Damdor.Vario
             valueToVariableType[variable.Type] = type;
         }
 
-        void OnPreprocessAsset()
+        internal static void RegisterGlobalStorage(VarioStorage storage)
         {
-            if (assetImporter.assetPath.EndsWith("vario_settings.json"))
-            {
-                init = false;
-            }
+            globalStorages.Add(storage);
         }
         
     }
