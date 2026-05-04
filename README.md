@@ -72,56 +72,34 @@ public class HealthComponent : MonoBehaviour, IVarioStorageSource
     }
 }
 ```
-## Settings file
-
-To modify default value behavior you can create a file <b>vario_settings.json</b> in any <b>Resources</b> folder.
 
 ### Creating custom types
 
+To create a custom variable type containing value of type <c>T</c>, create class deriving from <c>VarioVariable<T></c>
+and add <c>VarioVariable</c> attribute. Library automatically created list of supported variable types. 
+
 ```csharp
-namespace MyNamespace
-{
-    [Serializable]
-    public class MyCustomVarioVariable : VarioVariable<MyCustomType> { }
-}
-```
 
-then in your <b>vario_settings.json</b> you need to add that type:
+public class MyCustomType {}
 
-```json
-{
-  "types": {
-    "myCustomType": "MyNamespace.MyCustomVarioVariable"
-  }
-}
+[Serializable]
+[VarioVariable("MyCustomType")]
+public class MyCustomTypeVariable : VarioVariable<MyCustomType> { }
 ```
 
 ### Global Storage
 
 You can register global storages that are accessible throughout your application.
-To do this create scriptable object <b>VarioGlobalStorage</b> in <b>Resources</b> folder
-(Create/Damdor/Vario/Global storage) and add it to settings:
-
-```json
-{
-  "globalStorages": [
-    "MyCustomGlobalStorage"
-  ]  
-}
-```
+* Create global storage (`Assets/Create/Damdor/Vario/Global Storage`). You can have as many global storages as you want.
+* Create global storage library (`Assets/Create/Damdor/Vario/Global Storage Library`). Library should be put in `Resources` folder and
+be named `VarioGlobalStorages`. 
+* Add your global storage to the library
 
 ### Default global storages
 
-Vario has default global storages you can use. Right now only one is supported: <b>Vario_DefaultEasing</b>.
-To use it you need to add it to <b>vario_settings.json</b>:
-
-```json
-{
-  "globalStorages": [
-    "Vario_DefaultEasing"
-  ]  
-}
-```    
+Vario has default global storages you can use. They are placed in vario library in `DefaultStorages` folder. 
+Right now `Vario` comes with following default storages:
+* `Easing` - list of default easing animation curves
 
 ## Supported Types
 

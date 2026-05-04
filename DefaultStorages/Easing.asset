@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 436cac04dbc4492db36c68584a010922, type: 3}
-  m_Name: Vario_DefaultEasing
+  m_Name: Easing
   m_EditorClassIdentifier: 
   storage:
     variables:
@@ -46,7 +46,7 @@ MonoBehaviour:
     - rid: 7111654459771453468
     - rid: 7111654459771453469
     - rid: 7111654459771453470
-    - rid: 7111654459771453471     
+    - rid: 7111654459771453471
   references:
     version: 2
     RefIds:

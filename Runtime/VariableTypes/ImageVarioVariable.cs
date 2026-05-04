@@ -4,5 +4,6 @@ using UnityEngine.UI;
 namespace Damdor.Vario
 {
     [Serializable]
+    [VarioVariable("Image")]
     public class ImageVarioVariable : VarioVariable<Image> { }
 }

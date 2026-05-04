@@ -6,6 +6,7 @@ using TMPro;
 namespace Damdor.Vario
 {
     [Serializable]
+    [VarioVariable("TMP_Text")]
     public class TMPTextVarioVariable : VarioVariable<TMP_Text> { }
 }
 

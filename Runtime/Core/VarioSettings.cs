@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using UnityEngine;
 
 namespace Damdor.Vario
 {
@@ -17,7 +19,7 @@ namespace Damdor.Vario
         {
             get
             {
-                EnsureInit();
+                EnsureSupportedTypesInit();
                 return supportedTypes;
             }
         }
@@ -31,21 +33,22 @@ namespace Damdor.Vario
         {
             get
             {
-                EnsureInit();
+                EnsureGlobalStoragesInit();
                 return globalStorages;
             }
         }
 
-        private static bool init;
-        
+        private static bool supportedTypesInit;
         private static readonly List<Type> supportedTypes = new();
-        private static readonly List<VarioStorage> globalStorages = new();
         private static readonly Dictionary<Type, Type> valueToVariableType = new();
         private static readonly Dictionary<Type, string> variableTypeToName = new();
         
+        private static bool globalStoragesInit;
+        private static readonly List<VarioStorage> globalStorages = new();
+        
         public static VarioVariable<T> Create<T>()
         {
-            EnsureInit();
+            EnsureSupportedTypesInit();
             if (valueToVariableType.TryGetValue(typeof(T), out var type))
             {
                 return (VarioVariable<T>)Activator.CreateInstance(type);
@@ -55,29 +58,50 @@ namespace Damdor.Vario
 
         public static string GetVariableName(Type type)
         {
+            EnsureSupportedTypesInit();
             var name = variableTypeToName.GetValueOrDefault(type, "");
             return name;
         }
 
-        private static void EnsureInit()
+        private static void EnsureSupportedTypesInit()
         {
-            if (init) return;
+            if (supportedTypesInit) return;
             
-            Reset();
-            VarioSettingsLoader.Load();
-            init = true;
+            var baseType = typeof(VarioVariable);
+            
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                foreach (var type in assembly.GetTypes())
+                {
+                    if(type.IsInterface || type.IsAbstract || !type.IsSerializable || !baseType.IsAssignableFrom(type)) continue;
+                    var attr = type.GetCustomAttribute<VarioVariableAttribute>();
+                    if(attr == null) continue;
+                    
+                    RegisterVariableType(type, attr.Name);
+                }
+            }
+
+            supportedTypesInit = true;
         }
 
-        internal static void Reset()
+        private static void EnsureGlobalStoragesInit()
         {
-            init = false;
-            supportedTypes.Clear();
-            globalStorages.Clear();
-            valueToVariableType.Clear();
-            variableTypeToName.Clear();
+            if (globalStoragesInit) return;
+
+            var library = Resources.Load<VarioGlobalStorageLibrary>("VarioGlobalStorages");
+            if (library != null)
+            {
+                foreach (var globalStorage in library.GlobalStorages)
+                {
+                    if(globalStorage == null || globalStorage.Storage == null) continue;
+                    globalStorages.Add(globalStorage.Storage);
+                }
+            }
+            
+            globalStoragesInit = true;
         }
         
-        internal static void RegisterVariableType(Type type, string name)
+        private static void RegisterVariableType(Type type, string name)
         {
             if(supportedTypes.Contains(type)) return;
             supportedTypes.Add(type);
@@ -85,11 +109,6 @@ namespace Damdor.Vario
  
             var variable = (VarioVariable) Activator.CreateInstance(type);
             valueToVariableType[variable.Type] = type;
-        }
-
-        internal static void RegisterGlobalStorage(VarioStorage storage)
-        {
-            globalStorages.Add(storage);
         }
         
     }
