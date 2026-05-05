@@ -3,6 +3,18 @@
 A flexible and serializable variable storage system for Unity. This package allows you to manage collections 
 of variables with support for various types.
 
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Basic Usage](#basic-usage)
+  - [Creating Storage and Adding Variables](#creating-storage-and-adding-variables)
+  - [Retrieving Values](#retrieving-values)
+  - [Using StorageValue in Components](#using-storagevalue-in-components)
+  - [Creating custom types](#creating-custom-types)
+  - [Global Storage](#global-storage)
+  - [Default global storages](#default-global-storages)
+- [Supported Types](#supported-types)
+
 ## Features
 
 *   **Typed Variables**: Strongly typed variable storage (Int, Float, String, Vector3, etc.).
