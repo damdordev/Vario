@@ -1,4 +1,4 @@
-#if TEXT_MESH_PRO
+#if DAMDOR_VARIO_TEXT_MESH_PRO
 
 using System;
 using TMPro;

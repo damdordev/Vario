@@ -1,3 +1,5 @@
+#if DAMDOR_VARIO_UGUI
+
 using System;
 using UnityEngine.UI;
 
@@ -7,3 +9,5 @@ namespace Damdor.Vario
     [VarioVariable("Image")]
     public class ImageVarioVariable : VarioVariable<Image> { }
 }
+
+#endif
