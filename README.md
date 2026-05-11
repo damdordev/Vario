@@ -11,6 +11,7 @@ of variables with support for various types.
   - [Retrieving Values](#retrieving-values)
   - [Using StorageValue in Components](#using-storagevalue-in-components)
   - [Cloning Storage](#cloning-storage)
+  - [Object Pooling](#object-pooling)
   - [Creating custom types](#creating-custom-types)
   - [Global Storage](#global-storage)
   - [Default global storages](#default-global-storages)
@@ -22,6 +23,7 @@ of variables with support for various types.
 *   **Serialization Support**: Built-in support for Unity serialization.
 *   **Hierarchical Evaluation**: Evaluate variables with fallback to parent storage.
 *   **Flexible Input**: `VarioValue<T>` allows fields in your scripts to easily switch between a constant value and a variable reference.
+*   **Object Pooling**: Built-in object pooling for storages and variables to minimize GC allocations.
 *   **Extensible**: Easy to add custom variable types and converters.
 
 ## Installation
@@ -32,10 +34,13 @@ This package is available via UPM.
 
 ### Creating Storage and Adding Variables
 
+You can create a new storage directly, or optimally use the object pool:
+
 ```csharp
 using Damdor.Vario;
 
-var storage = new VarioStorage();
+// Creates a new instance or retrieves from the pool
+var storage = VarioStorage.Create();
 
 // Add an integer variable
 storage.Update<int>("Score", 100);
@@ -96,12 +101,28 @@ var clone = originalStorage.Clone();
 // Later when the clone is no longer needed:
 clone.Release();
 ```
-**Note:** `Release()` should *only* be called on cloned `VarioStorage` instances, as it releases the object and its variables back to the pool.
+**Note:** `Release()` should *only* be called on cloned `VarioStorage` instances, or instances created via `VarioStorage.Create()`, as it clears the object and releases it along with its variables back to the pool.
+
+### Object Pooling
+
+The Vario system uses object pooling under the hood to minimize garbage collection allocations when creating and cloning storages or adding variables.
+
+You can configure the maximum size of the pools to balance memory usage and performance:
+
+```csharp
+using Damdor.Vario;
+
+// Set the maximum number of variables of EACH type to keep in the pool. Default is 100.
+VarioSettings.VariablePoolSize = 200;
+
+// Set the maximum number of VarioStorage instances to keep in the pool. Default is 100.
+VarioSettings.StoragePoolSize = 50;
+```
 
 ### Creating custom types
 
-To create a custom variable type containing value of type <c>T</c>, create class deriving from <c>VarioVariable<T></c>
-and add <c>VarioVariable</c> attribute. Library automatically created list of supported variable types. 
+To create a custom variable type containing value of type `<c>T</c>`, create class deriving from `<c>VarioVariable<T></c>`
+and add `<c>VarioVariable</c>` attribute. Library automatically created list of supported variable types. 
 
 ```csharp
 

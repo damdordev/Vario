@@ -38,6 +38,26 @@ namespace Damdor.Vario
             }
         }
 
+        /// <summary>
+        /// Gets or sets the maximum number of variables of each type to be stored in the pool.
+        /// When the pool size is reduced, excess variables are discarded.
+        /// </summary>
+        public static int VariablePoolSize
+        {
+            get => VarioPooling.VariablePoolSize;
+            set => VarioPooling.VariablePoolSize = value;
+        }
+        
+        /// <summary>
+        /// Gets or sets the maximum number of storages to be stored in the pool.
+        /// When the pool size is reduced, excess storages are discarded.
+        /// </summary>
+        public static int StoragePoolSize
+        {
+            get => VarioPooling.StoragePoolSize;
+            set => VarioPooling.StoragePoolSize = value;
+        }
+        
         private static bool supportedTypesInit;
         private static readonly List<Type> supportedTypes = new();
         private static readonly Dictionary<Type, Type> valueToVariableType = new();

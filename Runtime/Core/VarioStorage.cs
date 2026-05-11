@@ -94,6 +94,13 @@ namespace Damdor.Vario
         }
 
         /// <summary>
+        /// Creates a new instance of VarioStorage from the object pool.
+        /// </summary>
+        /// <returns>A VarioStorage instance.</returns>
+        public static VarioStorage Create()
+            => VarioPooling.PopStorage();
+
+        /// <summary>
         /// Clears the storage and releases it along with its variables back to the object pool.
         /// </summary>
         /// <remarks>
@@ -101,9 +108,13 @@ namespace Damdor.Vario
         /// </remarks>
         public void Release()
         {
+            VarioPooling.ReleaseStorage(this);
+        }
+
+        internal void Reset()
+        {
             foreach (var variable in variables) VarioPooling.ReleaseVariable(variable);
             variables.Clear();
-            VarioPooling.ReleaseStorage(this);
         }
         
         private VarioVariable<T> GetVariableImpl<T>(string name)
