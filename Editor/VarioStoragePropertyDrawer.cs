@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Damdor.Foundation.Editor;
 using UnityEditor;
 using UnityEditorInternal;
 using UnityEngine;
