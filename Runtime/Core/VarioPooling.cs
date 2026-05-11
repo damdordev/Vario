@@ -57,6 +57,7 @@ namespace Damdor.Vario
         /// </summary>
         public static void ReleaseVariable(VarioVariable variable)
         {
+            if (variable == null) return;
             var type = variable.Type;
             if (!variablePools.TryGetValue(type, out var pool))
             {
@@ -82,6 +83,7 @@ namespace Damdor.Vario
         /// </summary>
         public static void ReleaseStorage(VarioStorage storage)
         {
+            if (storage == null) return;
             storage.Reset();
             if(storagePool.Count < storagePoolSize) storagePool.Push(storage);
         }
