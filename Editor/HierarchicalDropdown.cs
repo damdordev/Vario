@@ -47,7 +47,7 @@ namespace Damdor.Vario.Editor
         private AdvancedDropdownItem GetParent(string path)
         {
             if (!path.Contains('/')) return parents[""];
-            var parentPath = path.Substring(0, path.LastIndexOf('/'));
+            var parentPath = path[..path.LastIndexOf('/')];
             if (parents.TryGetValue(parentPath, out var parent)) return parent;
 
             var parentName = GetRawName(parentPath);
@@ -58,8 +58,8 @@ namespace Damdor.Vario.Editor
             return parent;
         }
 
-        private string GetRawName(string path) => path.Contains('/')
-            ? path.Substring(path.LastIndexOf('/') + 1)
+        private static string GetRawName(string path) => path.Contains('/')
+            ? path[(path.LastIndexOf('/') + 1)..]
             : path;
         
     }
