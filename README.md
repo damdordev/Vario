@@ -10,6 +10,7 @@ of variables with support for various types.
   - [Creating Storage and Adding Variables](#creating-storage-and-adding-variables)
   - [Retrieving Values](#retrieving-values)
   - [Using StorageValue in Components](#using-storagevalue-in-components)
+  - [Cloning Storage](#cloning-storage)
   - [Creating custom types](#creating-custom-types)
   - [Global Storage](#global-storage)
   - [Default global storages](#default-global-storages)
@@ -84,6 +85,18 @@ public class HealthComponent : MonoBehaviour, IVarioStorageSource
     }
 }
 ```
+
+### Cloning Storage
+
+You can create a copy of a storage utilizing an underlying object pooling mechanism to reduce memory allocations:
+
+```csharp
+var clone = originalStorage.Clone();
+
+// Later when the clone is no longer needed:
+clone.Release();
+```
+**Note:** `Release()` should *only* be called on cloned `VarioStorage` instances, as it releases the object and its variables back to the pool.
 
 ### Creating custom types
 

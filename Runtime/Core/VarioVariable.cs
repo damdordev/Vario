@@ -18,6 +18,9 @@ namespace Damdor.Vario
         /// Gets or sets the unique name identifying the variable.
         /// </summary>
         public abstract string Name { get; set; }
+
+        internal abstract VarioVariable Clone();
+        internal abstract void Reset();
     }
 
     /// <summary>
@@ -39,6 +42,20 @@ namespace Damdor.Vario
         {
             get => name;
             set => name = value;
+        }
+
+        internal override VarioVariable Clone()
+        {
+            var variable = VarioPooling.PopVariable<T>();
+            variable.Name = Name;
+            variable.Value = Value;
+            return variable;
+        }
+
+        internal override void Reset()
+        {
+            Name = null;
+            Value = default;
         }
 
         [SerializeField] private T value;

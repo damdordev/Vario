@@ -77,6 +77,34 @@ namespace Damdor.Vario
 
             return false;
         }
+
+        /// <summary>
+        /// Creates a clone of the storage utilizing object pooling.
+        /// </summary>
+        /// <returns>A cloned instance of the VarioStorage.</returns>
+        public VarioStorage Clone()
+        {
+            var storage = VarioPooling.PopStorage();
+            foreach (var variable in variables)
+            {
+                storage.variables.Add(variable.Clone());
+            }
+
+            return storage;
+        }
+
+        /// <summary>
+        /// Clears the storage and releases it along with its variables back to the object pool.
+        /// </summary>
+        /// <remarks>
+        /// Note: This method should be executed only for cloned VarioStorage instances.
+        /// </remarks>
+        public void Release()
+        {
+            foreach (var variable in variables) VarioPooling.ReleaseVariable(variable);
+            variables.Clear();
+            VarioPooling.ReleaseStorage(this);
+        }
         
         private VarioVariable<T> GetVariableImpl<T>(string name)
         {
