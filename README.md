@@ -57,7 +57,7 @@ int score = VarioValue<int>.FromStorage("Score").Evaluate(storage);
 int health = VarioValue<int>.FromStorage("Health").Evaluate(storage, -1);
 
 // Check if variable exists
-bool hasScore = storage.HasVariable<int>("Score");
+bool hasScore = storage.Contains<int>("Score");
 ```
 
 ### Using StorageValue in Components
