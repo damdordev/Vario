@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Damdor.Foundation.Editor;
 using UnityEditor;
@@ -104,9 +105,12 @@ namespace Damdor.Vario.Editor
         {
             var storageSource = property.serializedObject.targetObject as IVarioStorageSource;
             var storage = storageSource?.Storage;
-            if (storage == null) return null;
             var type = SerializedPropertyHelper.GetPropertyType(property).GetGenericArguments()[0];
-            var variables = storage.Variables.Where(t => t.Type == type).Select(v => v.Name).ToList();
+            var variables = new List<string>();
+            if (storage != null)
+            {
+                variables.AddRange(storage.Variables.Where(t => t.Type == type).Select(v => v.Name));
+            }
 
             foreach (var globaStorage in VarioSettings.GlobalStorages)
             {
