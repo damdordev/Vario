@@ -6,9 +6,10 @@ using UnityEngine.UIElements;
 namespace Damdor.Vario
 {
     [Serializable]
-    [VarioVariable("UIDocument")]
-    public class UIDocumentVariable : VarioVariable<UIDocument> 
+    [VarioVariable("VisualElement")]
+    public class VisualElementVariable : VarioVariable<VisualElement>
     {
+        
     }
 }
 

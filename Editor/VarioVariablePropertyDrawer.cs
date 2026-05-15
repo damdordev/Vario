@@ -12,7 +12,10 @@ namespace Damdor.Vario.Editor
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
             var valueProperty = property.FindPropertyRelative("value");
-            return Mathf.Max(EditorGUIUtility.singleLineHeight, EditorGUI.GetPropertyHeight(valueProperty, true));
+            var valuePropertyHeight = valueProperty != null
+                ? EditorGUI.GetPropertyHeight(valueProperty, true)
+                : EditorGUIUtility.singleLineHeight;
+            return Mathf.Max(EditorGUIUtility.singleLineHeight, valuePropertyHeight);
         }
 
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
@@ -29,13 +32,33 @@ namespace Damdor.Vario.Editor
                 nameProperty,
                 GUIContent.none
             );
-            
-            EditorGUI.PropertyField(
-                new Rect(position.x + nameLength + Spacing, position.y, position.width - nameLength - Spacing, position.height),
-                valueProperty,
-                GUIContent.none,
-                true
-            );
+
+            if (valueProperty != null)
+            {
+                EditorGUI.PropertyField(
+                    new Rect(
+                        position.x + nameLength + Spacing,
+                        position.y,
+                        position.width - nameLength - Spacing,
+                        position.height
+                    ),
+                    valueProperty,
+                    GUIContent.none,
+                    true
+                );
+            }
+            else
+            {
+                EditorGUI.LabelField(
+                    new Rect(
+                        position.x + nameLength + Spacing,
+                        position.y,
+                        position.width - nameLength - Spacing,
+                        EditorGUIUtility.singleLineHeight
+                    ),
+                    "Not serializable"
+                );
+            }
 
             if (EditorGUI.EndChangeCheck())
             {
