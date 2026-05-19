@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
+using Damdor.Foundation;
+#if DAMDOR_VARIO_UI_ELEMENTS
+using UnityEngine.UIElements;
+#endif
 
 namespace Damdor.Vario
 {
     internal static class VarioInternalHelper
     {
+        
         public static T Evaluate<T>(VarioStorage mainStorage, VarioValue<T> value, bool useGlobalStorages, T defaultValue) => value.Source switch
         {
             ValueSource.Raw => value.Value,
@@ -41,6 +46,29 @@ namespace Damdor.Vario
             value = default;
             return false;
         }
+        
+#if DAMDOR_VARIO_UI_ELEMENTS
+        public const string UiDocumentVariableName = "ui-document";
+        public const string UiRootQueryVariableName = "ui-root-query";
+        public const string UiRootVariableName = "ui-root";   
+        
+        public static VisualElement GetRoot(VarioStorage storage)
+        {
+            if (storage == null) throw new ArgumentException("Storage cannot be null");
+            var document = storage.Get<UIDocument>(UiDocumentVariableName);
+            if (document == null) throw new ArgumentException($"{UiDocumentVariableName} not found in storage");
+            var root = document.rootVisualElement;
+
+            if (storage.Contains<UiElementsQuery>(UiRootVariableName))
+            {
+                var query = storage.Get<UiElementsQuery>(UiRootVariableName);
+                root = root.Q<VisualElement>(query);
+            }
+
+            return root;
+        }
+        
+#endif
         
     }
 }

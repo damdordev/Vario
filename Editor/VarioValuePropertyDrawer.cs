@@ -17,11 +17,14 @@ namespace Damdor.Vario.Editor
         {
             var sourceProperty = property.FindPropertyRelative("source");
             var valueProperty = property.FindPropertyRelative("value");
+            var valueHeight = valueProperty != null
+                ? EditorGUI.GetPropertyHeight(valueProperty, true)
+                : EditorGUIUtility.singleLineHeight;
             
             var source = (ValueSource) sourceProperty.enumValueIndex;
             return source switch
             {
-                ValueSource.Raw => Mathf.Max(EditorGUIUtility.singleLineHeight, EditorGUI.GetPropertyHeight(valueProperty, true)),
+                ValueSource.Raw => Mathf.Max(EditorGUIUtility.singleLineHeight, valueHeight),
                 ValueSource.Storage => EditorGUIUtility.singleLineHeight,
                 _ => throw new ArgumentOutOfRangeException($"Wrong value source: {source}")
             };
@@ -49,12 +52,33 @@ namespace Damdor.Vario.Editor
             switch (source)
             {
                 case ValueSource.Raw:
-                    EditorGUI.PropertyField(
-                        new Rect(position.x + sourceLength + Spacing, position.y, position.width - sourceLength - Spacing, position.height),
-                        valueProperty,
-                        GUIContent.none,
-                        true
-                    );
+                    if (valueProperty != null)
+                    {
+                        EditorGUI.PropertyField(
+                            new Rect(
+                                position.x + sourceLength + Spacing,
+                                position.y,
+                                position.width - sourceLength - Spacing,
+                                position.height
+                            ),
+                            valueProperty,
+                            GUIContent.none,
+                            true
+                        );
+                    }
+                    else
+                    {
+                        EditorGUI.LabelField(
+                            new Rect(
+                                position.x + sourceLength + Spacing,
+                                position.y,
+                                position.width - sourceLength - Spacing,
+                                position.height
+                            ),
+                            "Not serializable"
+                        );
+                    }
+
                     break;
                 case ValueSource.Storage:
                     var variables = GetVariables(property);

@@ -6,8 +6,8 @@ using Damdor.Foundation;
 namespace Damdor.Vario
 {
     [Serializable]
-    [VarioVariable("UiToolkitQuery")]
-    public class UiToolkitQueryVariable : VarioVariable<UiToolkitQuery>
+    [VarioVariable("UiElementsQuery")]
+    public class UiElementsQueryVariable : VarioVariable<UiElementsQuery>
     {
     }
 }
