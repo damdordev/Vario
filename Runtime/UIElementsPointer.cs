@@ -78,7 +78,7 @@ namespace Damdor.Vario
                 case UIElementsPointerMode.Query:
                     var root = VarioInternalHelper.GetRoot(storage);
                     var q = query.Evaluate(storage);
-                    return root.Q<T>(q.Name, q.ClassName);
+                    return root.Q<T>(q);
                 default:
                     throw new ArgumentOutOfRangeException();
             }
