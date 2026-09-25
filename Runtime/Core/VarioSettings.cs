@@ -65,6 +65,9 @@ namespace Damdor.Vario
         
         private static bool globalStoragesInit;
         private static readonly List<VarioStorage> globalStorages = new();
+
+        private static bool numericOperationsInit;
+        private static readonly Dictionary<Type, INumericOperations> algorithms = new();
         
         public static VarioVariable<T> Create<T>()
         {
@@ -81,6 +84,19 @@ namespace Damdor.Vario
             EnsureSupportedTypesInit();
             var name = variableTypeToName.GetValueOrDefault(type, "");
             return name;
+        }
+        
+        /// <summary>
+        /// Gets the registered numeric operations algorithm for the specified type.
+        /// </summary>
+        /// <typeparam name="T">The type to get operations for.</typeparam>
+        /// <returns>The operations algorithm if found; otherwise, null.</returns>
+        public static INumericOperations<T> GetNumericOperations<T>()
+        {
+            EnsureNumericOperationsInit();
+            return algorithms.TryGetValue(typeof(T), out var result)
+                ? (INumericOperations<T>)result 
+                : null;
         }
 
         private static void EnsureSupportedTypesInit()
@@ -119,6 +135,46 @@ namespace Damdor.Vario
             }
             
             globalStoragesInit = true;
+        }
+        
+        private static void EnsureNumericOperationsInit()
+        {
+            if (numericOperationsInit) return;
+
+            foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                // Skip some well-known assemblies to speed up reflection
+                var name = assembly.GetName().Name;
+                if (name.StartsWith("System") || name.StartsWith("mscorlib") || name.StartsWith("UnityEngine") || name.StartsWith("UnityEditor"))
+                    continue;
+
+                try
+                {
+                    foreach (var type in assembly.GetTypes())
+                    {
+                        if(type.IsInterface || type.IsAbstract) continue;
+                        var attr = type.GetCustomAttribute<NumericOperationsAttribute>();
+                        if(attr == null) continue;
+
+                        try
+                        {
+                            var instance = (INumericOperations)Activator.CreateInstance(type);
+                            algorithms[instance.NumberType] = instance;
+                        }
+                        catch (Exception e)
+                        {
+                            UnityEngine.Debug.LogError($"[Numerio] Failed to instantiate numeric operations from type {type.Name}: {e.Message}");
+                        }
+                    }
+                }
+                catch (ReflectionTypeLoadException)
+                {
+                    // Ignore assemblies that can't be fully loaded
+                    UnityEngine.Debug.LogWarning($"[Numerio] Skipping assembly {name} due to ReflectionTypeLoadException.");
+                }
+            }
+            
+            numericOperationsInit = true;
         }
         
         private static void RegisterVariableType(Type type, string name)

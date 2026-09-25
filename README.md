@@ -1,7 +1,6 @@
 # Vario
 
-A flexible and serializable variable storage system for Unity. This package allows you to manage collections 
-of variables with support for various types.
+A flexible and serializable variable storage system and generic math operations library for Unity. This package allows you to manage collections of variables with support for various types, as well as perform generic numeric operations (`Lerp`, `Sum`, `Subtract`) without boxing overhead.
 
 ## Table of Contents
 - [Features](#features)
@@ -16,16 +15,25 @@ of variables with support for various types.
   - [Global Storage](#global-storage)
   - [Default global storages](#default-global-storages)
   - [UIElements Pointer](#uielements-pointer)
+- [Numeric Operations](#numeric-operations)
+  - [Getting Started](#getting-started)
+  - [Writing a Generic Interpolator](#writing-a-generic-interpolator)
+  - [Adding Support for Custom Types](#adding-support-for-custom-types)
+  - [Supported Numeric Types](#supported-numeric-types)
 - [Supported Types](#supported-types)
+  - [Variable Types](#variable-types)
+  - [Numeric Operation Types](#numeric-operation-types)
 
 ## Features
 
 *   **Typed Variables**: Strongly typed variable storage (Int, Float, String, Vector3, etc.).
+*   **Generic Numeric Operations**: Standardized `INumericOperations<T>` interface for `Lerp`, `LerpUnclamped`, `Sum`, and `Subtract` without boxing overhead, ideal for tweening and interpolation.
+*   **Auto-Discovery**: Automatically discovers and registers numeric operations across assemblies using `[NumericOperations]`.
 *   **Serialization Support**: Built-in support for Unity serialization.
 *   **Hierarchical Evaluation**: Evaluate variables with fallback to parent storage.
 *   **Flexible Input**: `VarioValue<T>` allows fields in your scripts to easily switch between a constant value and a variable reference.
 *   **Object Pooling**: Built-in object pooling for storages and variables to minimize GC allocations.
-*   **Extensible**: Easy to add custom variable types and converters.
+*   **Extensible**: Easy to add custom variable types, converters, and numeric operation handlers.
 *   **UIElements Support**: Utilities like `UIElementsPointer<T>` to query UI Toolkit elements or pass direct references.
 
 ## Installation
@@ -183,9 +191,147 @@ public void OnEnable()
 }
 ```
 
+## Numeric Operations
+
+Vario includes a generic numeric operations system that provides math operations (`Lerp`, `LerpUnclamped`, `Sum`, `Subtract`) for various types without the overhead of heavy boxing/unboxing or manually writing type-specific methods over and over.
+
+By defining an interface for math operations (`INumericOperations<T>`), it makes it easy to create generic tweeners, interpolators, and math utilities that work natively with `float`, `Vector3`, `Color`, and more.
+
+### Getting Started
+
+To get an operation provider for a specific type, use `NumerioSettings.Get<T>()`:
+
+```csharp
+using UnityEngine;
+using Damdor.Vario;
+
+public class NumericExample : MonoBehaviour
+{
+    void Start()
+    {
+        // Get the operations for float
+        var floatOps = NumerioSettings.Get<float>();
+        float lerpedFloat = floatOps.Lerp(0f, 10f, 0.5f); // Returns 5.0f
+        
+        // Get the operations for Vector3
+        var vectorOps = NumerioSettings.Get<Vector3>();
+        Vector3 sum = vectorOps.Sum(Vector3.one, Vector3.up); // Returns (1, 2, 1)
+        
+        Debug.Log($"Lerped Float: {lerpedFloat}");
+        Debug.Log($"Vector3 Sum: {sum}");
+    }
+}
+```
+
+### Writing a Generic Interpolator
+
+Numeric operations shine when writing generic systems, such as a generic Tween class:
+
+```csharp
+using UnityEngine;
+using Damdor.Vario;
+
+public class GenericTweener<T>
+{
+    private T startValue;
+    private T endValue;
+    private INumericOperations<T> ops;
+
+    public GenericTweener(T start, T end)
+    {
+        startValue = start;
+        endValue = end;
+        ops = NumerioSettings.Get<T>();
+        
+        if (ops == null)
+        {
+            Debug.LogError($"No Numeric Operations registered for type {typeof(T)}!");
+        }
+    }
+
+    public T GetValueAt(float time)
+    {
+        return ops.Lerp(startValue, endValue, time);
+    }
+}
+```
+
+### Adding Support for Custom Types
+
+If you have a custom struct or class that you want to animate/interpolate, inherit from `BaseNumericOperations<T>` and add the `[NumericOperations]` attribute for auto-discovery:
+
+```csharp
+using UnityEngine;
+using Damdor.Vario;
+
+public struct MyCustomData
+{
+    public float Weight;
+    public int Score;
+}
+
+// 1. Inherit from BaseNumericOperations<T>
+// 2. Add the [NumericOperations] attribute for auto-discovery
+[NumericOperations]
+public class MyCustomDataOperations : BaseNumericOperations<MyCustomData>
+{
+    public override MyCustomData Lerp(MyCustomData a, MyCustomData b, float t)
+    {
+        return new MyCustomData
+        {
+            Weight = Mathf.Lerp(a.Weight, b.Weight, t),
+            Score = Mathf.RoundToInt(Mathf.Lerp(a.Score, b.Score, t))
+        };
+    }
+
+    public override MyCustomData LerpUnclamped(MyCustomData a, MyCustomData b, float t)
+    {
+        return new MyCustomData
+        {
+            Weight = Mathf.LerpUnclamped(a.Weight, b.Weight, t),
+            Score = Mathf.RoundToInt(Mathf.LerpUnclamped(a.Score, b.Score, t))
+        };
+    }
+
+    public override MyCustomData Sum(MyCustomData a, MyCustomData b)
+    {
+        return new MyCustomData
+        {
+            Weight = a.Weight + b.Weight,
+            Score = a.Score + b.Score
+        };
+    }
+
+    public override MyCustomData Subtract(MyCustomData a, MyCustomData b)
+    {
+        return new MyCustomData
+        {
+            Weight = a.Weight - b.Weight,
+            Score = a.Score - b.Score
+        };
+    }
+}
+```
+
+### Supported Numeric Types
+
+Built-in numeric operations are provided for:
+*   **Primitives**: `float`, `double`, `bool`
+*   **Unity Types**: `Vector2`, `Vector3`, `Color`, `Rect`, `Quaternion`
+*   **System Types**: `DateTime`, `TimeSpan`
+
 ## Supported Types
+
+### Variable Types
 
 The package comes with many built-in variable types including:
 *   Primitives: `bool`, `int`, `float`, `string`
 *   Unity Types: `Vector2`, `Vector3`, `Color`, `Rect`, `LayerMask`
 *   Assets: `GameObject`, `Texture`, `Sprite`, `Material`, `AudioClip`, `AnimationCurve`, `TextAsset`
+
+### Numeric Operation Types
+
+Built-in `INumericOperations<T>` implementations are available for:
+*   Primitives: `float`, `double`, `bool`
+*   Unity Types: `Vector2`, `Vector3`, `Color`, `Rect`, `Quaternion`
+*   System Types: `DateTime`, `TimeSpan`

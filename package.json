@@ -12,6 +12,5 @@
     "url": "https://github.com/damdordev/Vario.git"
   },
   "dependencies": {
-    "com.damdor.foundation": "1.0.0"
   }  
 }
