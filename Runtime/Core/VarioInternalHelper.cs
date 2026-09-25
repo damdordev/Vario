@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Damdor.Foundation;
 #if DAMDOR_VARIO_UI_ELEMENTS
 using UnityEngine.UIElements;
 #endif
@@ -59,11 +58,9 @@ namespace Damdor.Vario
             if (document == null) throw new ArgumentException($"{UiDocumentVariableName} not found in storage");
             var root = document.rootVisualElement;
 
-            if (storage.Contains<UiElementsQuery>(UiRootVariableName))
-            {
-                var query = storage.Get<UiElementsQuery>(UiRootVariableName);
-                root = root.Q<VisualElement>(query);
-            }
+            if (!storage.Contains<UiElementsQuery>(UiRootVariableName)) return root;
+            var query = storage.Get<UiElementsQuery>(UiRootVariableName);
+            root = root.Q<VisualElement>(query);
 
             return root;
         }

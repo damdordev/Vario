@@ -1,5 +1,4 @@
 using System;
-using Damdor.Foundation;
 
 namespace Damdor.Vario
 {
