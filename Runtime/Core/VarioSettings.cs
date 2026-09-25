@@ -124,6 +124,7 @@ namespace Damdor.Vario
         {
             if (globalStoragesInit) return;
 
+            globalStorages.Clear();
             var library = Resources.Load<VarioGlobalStorageLibrary>("VarioGlobalStorages");
             if (library != null)
             {
@@ -135,6 +136,11 @@ namespace Damdor.Vario
             }
             
             globalStoragesInit = true;
+        }
+
+        internal static void ResetGlobalStoragesInit()
+        {
+            globalStoragesInit = false;
         }
         
         private static void EnsureNumericOperationsInit()
