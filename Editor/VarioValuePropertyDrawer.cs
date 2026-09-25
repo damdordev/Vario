@@ -9,8 +9,8 @@ namespace Damdor.Vario.Editor
     [CustomPropertyDrawer(typeof(VarioValue<>))]
     public class VarioValuePropertyDrawer : PropertyDrawer
     {
-        private const float SourceSize = 0.4f;
         private const float Spacing = 20f;
+        private GUIContent settingsIcon;
         
         public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
         {
@@ -34,18 +34,22 @@ namespace Damdor.Vario.Editor
             var sourceProperty = property.FindPropertyRelative("source");
             var nameProperty = property.FindPropertyRelative("name");
             var valueProperty = property.FindPropertyRelative("value");
+            settingsIcon ??= EditorGUIUtility.IconContent("_Popup");
             
             EditorGUI.BeginProperty(position, label, property);
             EditorGUI.BeginChangeCheck();
 
             position = EditorGUI.PrefixLabel(position, GUIUtility.GetControlID(FocusType.Passive), label, EditorStyles.label);
-            var sourceLength = SourceSize * position.width;
-            
-            EditorGUI.PropertyField(
-                new Rect(position.x, position.y, sourceLength, EditorGUIUtility.singleLineHeight),
-                sourceProperty,
-                GUIContent.none
-            );
+
+            var buttonRect = new Rect(position.x, position.y, Spacing, EditorGUIUtility.singleLineHeight);
+            if (GUI.Button(
+                    buttonRect,
+                    settingsIcon,
+                    EditorStyles.iconButton)
+               )
+            {
+                ShowContextMenu(buttonRect, sourceProperty);
+            }
 
             var source = (ValueSource) sourceProperty.enumValueIndex;
             switch (source)
@@ -55,9 +59,9 @@ namespace Damdor.Vario.Editor
                     {
                         EditorGUI.PropertyField(
                             new Rect(
-                                position.x + sourceLength + Spacing,
+                                position.x + Spacing,
                                 position.y,
-                                position.width - sourceLength - Spacing,
+                                position.width - Spacing,
                                 position.height
                             ),
                             valueProperty,
@@ -69,9 +73,9 @@ namespace Damdor.Vario.Editor
                     {
                         EditorGUI.LabelField(
                             new Rect(
-                                position.x + sourceLength + Spacing,
+                                position.x + Spacing,
                                 position.y,
-                                position.width - sourceLength - Spacing,
+                                position.width - Spacing,
                                 position.height
                             ),
                             "Not serializable"
@@ -85,9 +89,9 @@ namespace Damdor.Vario.Editor
                     {
                         EditorGUI.PropertyField(
                             new Rect(
-                                position.x + sourceLength + Spacing,
+                                position.x + Spacing,
                                 position.y,
-                                position.width - sourceLength - Spacing,
+                                position.width - Spacing,
                                 position.height
                             ),
                             nameProperty,
@@ -98,9 +102,9 @@ namespace Damdor.Vario.Editor
                     else
                     {
                         var rect = new Rect(
-                            position.x + sourceLength + Spacing,
+                            position.x + Spacing,
                             position.y,
-                            position.width - sourceLength - Spacing,
+                            position.width - Spacing,
                             position.height
                         );
                         if (GUI.Button(rect, nameProperty.stringValue, EditorStyles.popup))
@@ -141,6 +145,25 @@ namespace Damdor.Vario.Editor
             }
             
             return variables.Distinct().OrderBy(v => v).ToArray();
+        }
+        
+        private void ShowContextMenu(Rect buttonRect, SerializedProperty property)
+        {
+            var menu = new GenericMenu();
+            var currentType = (ValueSource) property.enumValueIndex;
+
+            menu.AddItem(new GUIContent("Raw"), currentType == ValueSource.Raw, _ =>
+            {
+                property.enumValueIndex = (int)ValueSource.Raw;
+                property.serializedObject.ApplyModifiedProperties();
+            }, "Raw");
+            menu.AddItem(new GUIContent("Storage"), currentType == ValueSource.Storage, _ =>
+            {
+                property.enumValueIndex = (int)ValueSource.Storage;
+                property.serializedObject.ApplyModifiedProperties();
+            }, "Storage");
+            
+            menu.DropDown(buttonRect);
         }
 
     }
