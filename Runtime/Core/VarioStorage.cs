@@ -59,6 +59,14 @@ namespace Damdor.Vario
 
             variable.Value = value;
         }
+        
+        public void Update(VarioVariable variable)
+        {
+            var index = Remove(variable.Type, variable.Name);
+            var newVariable = variable.Clone();
+            if(index < 0) variables.Add(newVariable);
+            else variables.Insert(index, newVariable);
+        }
 
         /// <summary>
         /// Removes a variable from the storage.
@@ -78,6 +86,18 @@ namespace Damdor.Vario
             return false;
         }
 
+        private int Remove(Type type, string name)
+        {
+            for (var i = 0; i < variables.Count; i++)
+            {
+                if (variables[i].Type != type || variables[i].Name != name) continue;
+                variables.RemoveAt(i);
+                return i;
+            }
+
+            return -1;
+        }
+        
         /// <summary>
         /// Creates a clone of the storage utilizing object pooling.
         /// </summary>
@@ -111,10 +131,24 @@ namespace Damdor.Vario
             VarioPooling.ReleaseStorage(this);
         }
 
-        internal void Reset()
+        /// <summary>
+        /// Clears all variables from the storage, releasing them back to the pooling system
+        /// and resetting the internal collection.
+        /// </summary>
+        public void Clear()
         {
             foreach (var variable in variables) VarioPooling.ReleaseVariable(variable);
             variables.Clear();
+        }
+
+        public void CopyFrom(VarioStorage other)
+        {
+            foreach (var variable in other.variables) Update(variable);
+        }
+
+        internal void Reset()
+        {
+            Clear();
         }
         
         private VarioVariable<T> GetVariableImpl<T>(string name)

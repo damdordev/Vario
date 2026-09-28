@@ -78,6 +78,16 @@ namespace Damdor.Vario
             }
             return null;
         }
+        
+        public static VarioVariable Create(Type type)
+        {
+            EnsureSupportedTypesInit();
+            if (valueToVariableType.TryGetValue(type, out var variableType))
+            {
+                return (VarioVariable)Activator.CreateInstance(type);
+            }
+            return null;
+        }
 
         public static string GetVariableName(Type type)
         {
