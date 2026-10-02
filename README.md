@@ -199,7 +199,7 @@ By defining an interface for math operations (`INumericOperations<T>`), it makes
 
 ### Getting Started
 
-To get an operation provider for a specific type, use `NumerioSettings.Get<T>()`:
+To get an operation provider for a specific type, use `VarioSettings.GetNumericOperations<T>()`:
 
 ```csharp
 using UnityEngine;

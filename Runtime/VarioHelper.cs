@@ -7,6 +7,8 @@ namespace Damdor.Vario
     /// </summary>
     public static class VarioHelper
     {
+        #if DAMDOR_VARIO_UI_ELEMENTS
+        
         /// <summary>
         /// Puts a root <see cref="UIDocument"/> to the <see cref="VarioStorage"/>
         /// </summary>
@@ -37,6 +39,8 @@ namespace Damdor.Vario
         public static void PutRoot(VarioStorage storage, VisualElement root)
         {
             storage.Update(VarioInternalHelper.UiRootVariableName, root);
-        }        
+        }   
+        
+        #endif
     }
 }

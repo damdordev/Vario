@@ -22,12 +22,10 @@ namespace Damdor.Vario
                 simpleResult.a = filter.A ? other.a : v.a;
                 return simpleResult;
             }
-            
-            float h, s, vValue;
-            Color.RGBToHSV(v, out h, out s, out vValue);
-            
-            float otherH, otherS, otherV;
-            Color.RGBToHSV(other, out otherH, out otherS, out otherV);
+
+            Color.RGBToHSV(v, out var h, out var s, out var vValue);
+
+            Color.RGBToHSV(other, out var otherH, out var otherS, out var otherV);
 
             h = filter.H ? otherH : h;
             s = filter.S ? otherS : s;

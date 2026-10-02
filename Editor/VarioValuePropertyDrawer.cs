@@ -147,7 +147,7 @@ namespace Damdor.Vario.Editor
             return variables.Distinct().OrderBy(v => v).ToArray();
         }
         
-        private void ShowContextMenu(Rect buttonRect, SerializedProperty property)
+        private static void ShowContextMenu(Rect buttonRect, SerializedProperty property)
         {
             var menu = new GenericMenu();
             var currentType = (ValueSource) property.enumValueIndex;

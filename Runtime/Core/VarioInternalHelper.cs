@@ -13,7 +13,7 @@ namespace Damdor.Vario
         {
             ValueSource.Raw => value.Value,
             ValueSource.Storage => Evaluate(mainStorage, value.Name, useGlobalStorages, defaultValue),
-            _ => throw new ArgumentOutOfRangeException($"Unknown value source: {typeof(T).Name} ")
+            _ => throw new ArgumentOutOfRangeException($"Unknown value source: {value.Source} for type {typeof(T).Name} ")
         };
         
         private static T Evaluate<T>(VarioStorage mainStorage, string name, bool useGlobalStorages, T defaultValue)
@@ -37,7 +37,7 @@ namespace Damdor.Vario
         {
             foreach (var variable in variables)
             {
-                if (variable.Name != name || variable.Type != typeof(T) || variable is not VarioVariable<T> typedVariable) continue;
+                if (variable == null || variable.Name != name || variable.Type != typeof(T) || variable is not VarioVariable<T> typedVariable) continue;
                 value = typedVariable.Value;
                 return true;
             }
@@ -55,7 +55,7 @@ namespace Damdor.Vario
         {
             if (storage == null) throw new ArgumentException("Storage cannot be null");
             var document = storage.Get<UIDocument>(UiDocumentVariableName);
-            if (document == null) throw new ArgumentException($"{UiDocumentVariableName} not found in storage");
+            if (!document) throw new ArgumentException($"{UiDocumentVariableName} not found in storage");
             var root = document.rootVisualElement;
 
             if (!storage.Contains<UiElementsQuery>(UiRootVariableName)) return root;

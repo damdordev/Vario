@@ -51,21 +51,19 @@ namespace Damdor.Vario.Editor
                             }
                         }
                     }
-                    
+
+                    if (currentObject != null) continue;
+                    if (currentObject != null)
+                    {
+                        currentObject = field.GetValue(currentObject);
+                        if (currentObject != null) currentType = currentObject.GetType();
+                    }
+
                     if (currentObject == null)
                     {
-                        if (currentObject != null)
-                        {
-                            currentObject = field.GetValue(currentObject);
-                            if (currentObject != null) currentType = currentObject.GetType();
-                        }
-
-                        if (currentObject == null)
-                        {
-                            currentType = field.FieldType.IsArray
-                                ? field.FieldType.GetElementType()
-                                : field.FieldType.GetGenericArguments()[0];
-                        }
+                        currentType = field.FieldType.IsArray
+                            ? field.FieldType.GetElementType()
+                            : field.FieldType.GetGenericArguments()[0];
                     }
                 }
                 else

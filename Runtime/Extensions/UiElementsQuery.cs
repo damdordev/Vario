@@ -37,7 +37,7 @@ namespace Damdor.Vario
         {
             unchecked
             {
-                int hashCode = (Name != null ? Name.GetHashCode() : 0);
+                var hashCode = Name != null ? Name.GetHashCode() : 0;
                 hashCode = (hashCode * 397) ^ (ClassName != null ? ClassName.GetHashCode() : 0);
                 return hashCode;
             }

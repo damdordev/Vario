@@ -52,7 +52,7 @@ namespace Damdor.Vario
             var variable = GetVariableImpl<T>(name);
             if (variable == null)
             {
-                variable = VarioSettings.Create<T>();
+                variable = VarioPooling.PopVariable<T>();
                 variable.Name = name;
                 variables.Add(variable);
             }
@@ -78,8 +78,10 @@ namespace Damdor.Vario
         {
             for (var i = 0; i < variables.Count; i++)
             {
-                if (variables[i] is not VarioVariable<T> || variables[i].Name != name) continue;
+                if (variables == null || variables[i] is not VarioVariable<T> || variables[i].Name != name) continue;
+                var variable = variables[i];
                 variables.RemoveAt(i);
+                VarioPooling.ReleaseVariable(variable);
                 return true;
             }
 
@@ -90,8 +92,10 @@ namespace Damdor.Vario
         {
             for (var i = 0; i < variables.Count; i++)
             {
-                if (variables[i].Type != type || variables[i].Name != name) continue;
+                if (variables == null || variables[i].Type != type || variables[i].Name != name) continue;
+                var variable = variables[i];
                 variables.RemoveAt(i);
+                VarioPooling.ReleaseVariable(variable);
                 return i;
             }
 
@@ -143,6 +147,7 @@ namespace Damdor.Vario
 
         public void CopyFrom(VarioStorage other)
         {
+            if (other == null || other == this) return;
             foreach (var variable in other.variables) Update(variable);
         }
 

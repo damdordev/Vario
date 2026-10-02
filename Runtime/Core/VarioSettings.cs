@@ -7,6 +7,7 @@ namespace Damdor.Vario
     /// <summary>
     /// Provides global configuration and registry settings for the Variable Storage system.
     /// </summary>
+    // ReSharper disable once PartialTypeWithSinglePart
     public static partial class VarioSettings
     {
         /// <summary>
@@ -34,6 +35,7 @@ namespace Damdor.Vario
         /// Gets or sets the maximum number of variables of each type to be stored in the pool.
         /// When the pool size is reduced, excess variables are discarded.
         /// </summary>
+        // ReSharper disable once UnusedMember.Global
         public static int VariablePoolSize
         {
             get => VarioPooling.VariablePoolSize;
@@ -44,6 +46,7 @@ namespace Damdor.Vario
         /// Gets or sets the maximum number of storages to be stored in the pool.
         /// When the pool size is reduced, excess storages are discarded.
         /// </summary>
+        // ReSharper disable once UnusedMember.Global
         public static int StoragePoolSize
         {
             get => VarioPooling.StoragePoolSize;
@@ -65,7 +68,7 @@ namespace Damdor.Vario
             {
                 return (VarioVariable<T>)Activator.CreateInstance(type);
             }
-            return null;
+            return new VarioVariable<T>();
         }
 
         public static string GetVariableName(Type type)
@@ -95,11 +98,11 @@ namespace Damdor.Vario
 
             globalStorages.Clear();
             var library = Resources.Load<VarioGlobalStorageLibrary>("VarioGlobalStorages");
-            if (library != null)
+            if (library && library.GlobalStorages != null)
             {
                 foreach (var globalStorage in library.GlobalStorages)
                 {
-                    if(globalStorage == null || globalStorage.Storage == null) continue;
+                    if(!globalStorage || globalStorage.Storage == null) continue;
                     globalStorages.Add(globalStorage.Storage);
                 }
             }
@@ -112,7 +115,6 @@ namespace Damdor.Vario
             globalStoragesInit = false;
         }
         
-        
         public static void RegisterVariableType(Type type, string name)
         {
             if(supportedTypes.Contains(type)) return;
@@ -121,6 +123,12 @@ namespace Damdor.Vario
  
             var variable = (VarioVariable) Activator.CreateInstance(type);
             valueToVariableType[variable.Type] = type;
+        }
+        
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)] 
+        private static void Initialize()
+        {
+            globalStoragesInit = false;
         }
         
     }

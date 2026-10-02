@@ -5,6 +5,7 @@ namespace Damdor.Vario.Editor
 {
     public static class EditorHelper
     {
+        // ReSharper disable once UnusedMember.Global
         public static void ShowRevertedBool(Rect rect, SerializedProperty property, GUIContent content)
         {
             EditorGUI.BeginChangeCheck();

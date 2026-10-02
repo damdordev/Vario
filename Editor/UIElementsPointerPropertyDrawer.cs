@@ -1,6 +1,5 @@
 #if DAMDOR_VARIO_UI_ELEMENTS
 
-using System;
 using UnityEditor;
 using UnityEngine;
 
@@ -18,17 +17,16 @@ namespace Damdor.Vario.Editor
             var queryProperty = property.FindPropertyRelative("query");
 
             var mode = (UIElementsPointerMode)modeProperty.enumValueIndex;
-            switch (mode)
+            return mode switch
             {
-                case UIElementsPointerMode.Element:
-                    return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing +
-                           EditorGUI.GetPropertyHeight(elementProperty, true);
-                case UIElementsPointerMode.Query:
-                    return EditorGUIUtility.singleLineHeight + EditorGUIUtility.standardVerticalSpacing +
-                           EditorGUI.GetPropertyHeight(queryProperty, true);
-                default:
-                    return EditorGUIUtility.singleLineHeight;
-            }
+                UIElementsPointerMode.Element => EditorGUIUtility.singleLineHeight +
+                                                 EditorGUIUtility.standardVerticalSpacing +
+                                                 EditorGUI.GetPropertyHeight(elementProperty, true),
+                UIElementsPointerMode.Query => EditorGUIUtility.singleLineHeight +
+                                               EditorGUIUtility.standardVerticalSpacing +
+                                               EditorGUI.GetPropertyHeight(queryProperty, true),
+                _ => EditorGUIUtility.singleLineHeight
+            };
         }
         
         public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)

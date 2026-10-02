@@ -47,7 +47,7 @@ namespace Damdor.Vario.Editor
             EditorGUI.EndProperty();
         }
 
-        private void ShowAxis(Rect rect, SerializedProperty property, string label)
+        private static void ShowAxis(Rect rect, SerializedProperty property, string label)
         {
             EditorGUI.LabelField(
                 new Rect(rect.x, rect.y, LabelSize, rect.height),

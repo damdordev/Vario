@@ -1,10 +1,11 @@
 using UnityEngine;
 
-namespace Damdor.Foundation
+namespace Damdor.Vario
 {
     public static class TransformExtension
     {
         
+        // ReSharper disable once UnusedMember.Global
         public static string GetFullPath(this Transform transform)
         {
             var path = transform.name;
