@@ -42,6 +42,26 @@ namespace Damdor.Vario
         }
         
         /// <summary>
+        /// Checks if a variable with the specified name exists in the storage.
+        /// </summary>
+        /// <param name="name">The name of the variable.</param>
+        /// <returns>True if the variable exists, otherwise false.</returns>
+        public bool Contains(string name)
+        {
+            return GetVariableImpl(name) != null;
+        }
+
+        /// <summary>
+        /// Retrieves the type of a variable with the specified name.
+        /// </summary>
+        /// <param name="name">The name of the variable whose type is to be retrieved.</param>
+        /// <returns>The type of the variable if found; otherwise, null.</returns>
+        public Type GetType(string name)
+        {
+            return GetVariableImpl(name)?.Type;
+        }
+        
+        /// <summary>
         /// Updates the value of a variable. If the variable does not exist, it will be created.
         /// </summary>
         /// <typeparam name="T">The type of the variable.</typeparam>
@@ -49,20 +69,38 @@ namespace Damdor.Vario
         /// <param name="value">The new value to set.</param>
         public void Update<T>(string name, T value)
         {
-            var variable = GetVariableImpl<T>(name);
-            if (variable == null)
+            var variable = GetVariableImpl(name);
+            var typedVariable = variable as VarioVariable<T>;
+            
+            if (typedVariable == null)
             {
-                variable = VarioPooling.PopVariable<T>();
-                variable.Name = name;
-                variables.Add(variable);
+                var newVariable = VarioPooling.PopVariable<T>();
+                newVariable.Name = name;
+                newVariable.Value = value;
+                if(variable == null)
+                {
+                    variables.Add(newVariable);
+                }
+                else
+                {
+                    Remove(name, out var index);
+                    variables.Insert(index, newVariable);
+                }
+            } 
+            else
+            {
+                typedVariable.Value = value; 
             }
 
-            variable.Value = value;
         }
         
+        /// <summary>
+        /// Updates the value of a variable by cloning passed variable.
+        /// </summary>
+        /// <param name="variable">Variable to clone</param>
         public void Update(VarioVariable variable)
         {
-            var index = Remove(variable.Type, variable.Name);
+            Remove(variable.Name, out var index);
             var newVariable = variable.Clone();
             if(index < 0) variables.Add(newVariable);
             else variables.Insert(index, newVariable);
@@ -71,35 +109,12 @@ namespace Damdor.Vario
         /// <summary>
         /// Removes a variable from the storage.
         /// </summary>
-        /// <typeparam name="T">The type of the variable to remove.</typeparam>
         /// <param name="name">The name of the variable to remove.</param>
         /// <returns>True if the variable was found and removed, otherwise false.</returns>
-        public bool Remove<T>(string name)
+        public bool Remove(string name)
         {
-            for (var i = 0; i < variables.Count; i++)
-            {
-                if (variables == null || variables[i] is not VarioVariable<T> || variables[i].Name != name) continue;
-                var variable = variables[i];
-                variables.RemoveAt(i);
-                VarioPooling.ReleaseVariable(variable);
-                return true;
-            }
-
-            return false;
-        }
-
-        private int Remove(Type type, string name)
-        {
-            for (var i = 0; i < variables.Count; i++)
-            {
-                if (variables == null || variables[i].Type != type || variables[i].Name != name) continue;
-                var variable = variables[i];
-                variables.RemoveAt(i);
-                VarioPooling.ReleaseVariable(variable);
-                return i;
-            }
-
-            return -1;
+            Remove(name, out var index);
+            return index >= 0;
         }
         
         /// <summary>
@@ -164,6 +179,31 @@ namespace Damdor.Vario
             }
 
             return null;
+        }
+        
+        private VarioVariable GetVariableImpl(string name)
+        {
+            foreach (var variable in variables)
+            {
+                if (variable.Name == name) return variable;
+            }
+
+            return null;
+        }
+        
+        private void Remove(string name, out int index)
+        {
+            for (var i = 0; i < variables.Count; i++)
+            {
+                if (variables == null || variables[i].Name != name) continue;
+                var variable = variables[i];
+                variables.RemoveAt(i);
+                VarioPooling.ReleaseVariable(variable);
+                index = i;
+                return;
+            }
+
+            index = -1;
         }
 
     }
