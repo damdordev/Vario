@@ -109,8 +109,9 @@ namespace Damdor.Vario
                 }
                 else
                 {
-                    Remove(name, out var index);
-                    variables.Insert(index, newVariable);
+                    var index = variables.IndexOf(variable);
+                    VarioPooling.ReleaseVariable(variable);
+                    variables[index] = newVariable;
                 }
                 UpdateLookupCache(newVariable);
             } 
@@ -127,11 +128,32 @@ namespace Damdor.Vario
         public void Update(VarioVariable variable)
         {
             EnsureLookupCache();
-            Remove(variable.Name, out var index);
-            var newVariable = variable.Clone();
-            if(index < 0) variables.Add(newVariable);
-            else variables.Insert(index, newVariable);
-            UpdateLookupCache(newVariable);
+            if(variable == null) throw new ArgumentNullException(nameof(variable));
+            AssertNameIsNotNull(variable.Name);
+
+            var oldVariable = GetVariableImpl(variable.Name);
+            if (variable == oldVariable) return;
+            if (oldVariable == null)
+            {
+                var newVariable = variable.Clone();
+                variables.Add(newVariable);
+                UpdateLookupCache(newVariable);
+            }
+            else
+            {
+                if (oldVariable.Type == variable.Type)
+                {
+                    oldVariable.TryCopyFrom(variable);
+                }
+                else
+                {             
+                    var newVariable = variable.Clone();
+                    variables[variables.IndexOf(oldVariable)] = newVariable;
+                    VarioPooling.ReleaseVariable(oldVariable);
+                    UpdateLookupCache(newVariable);
+                }
+            }
+
         }
 
         /// <summary>
@@ -226,20 +248,18 @@ namespace Damdor.Vario
         
         private void Remove(string name, out int index)
         {
-            AssertNameIsNotNull(name);
-            EnsureLookupCache();
-            for (var i = 0; i < variables.Count; i++)
-            {
-                if (variables == null || variables[i].Name != name) continue;
-                var variable = variables[i];
-                variables.RemoveAt(i);
-                lookupCache.Remove(name);
-                VarioPooling.ReleaseVariable(variable);
-                index = i;
-                return;
-            }
-
             index = -1;
+            AssertNameIsNotNull(name);
+
+            var variable = GetVariableImpl(name);
+            if(variable == null) return;
+            
+            index = variables.IndexOf(variable);
+            if (index < 0) return;
+
+            lookupCache.Remove(name);
+            variables.RemoveAt(index);
+            VarioPooling.ReleaseVariable(variable);
         }
 
         private void AssertNameIsNotNull(string name)

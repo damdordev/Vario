@@ -21,6 +21,7 @@ namespace Damdor.Vario
 
         internal abstract VarioVariable Clone();
         internal abstract void Reset();
+        internal abstract void TryCopyFrom(VarioVariable variable);
     }
 
     /// <summary>
@@ -56,6 +57,14 @@ namespace Damdor.Vario
         {
             Name = null;
             Value = default;
+        }
+        
+        internal override void TryCopyFrom(VarioVariable variable)
+        {
+            if (variable is VarioVariable<T> typedVariable)
+            {
+                Value = typedVariable.Value;   
+            }
         }
 
         [SerializeField] private T value;

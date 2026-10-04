@@ -14,5 +14,13 @@ namespace Damdor.Vario
             variable.Value = new AnimationCurve(Value.keys);
             return variable;
         }
+
+        internal override void TryCopyFrom(VarioVariable variable)
+        {
+            if (variable is AnimationCurveVarioVariable typedVariable)
+            {
+                Value = new AnimationCurve(typedVariable.Value.keys);
+            }
+        }
     }
 }
