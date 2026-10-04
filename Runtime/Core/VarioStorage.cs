@@ -8,7 +8,7 @@ namespace Damdor.Vario
     /// Manages a collection of variables and provides methods for retrieval, removal and updates.
     /// </summary>
     [Serializable]
-    public class VarioStorage
+    public class VarioStorage : ISerializationCallbackReceiver
     {
         /// <summary>
         /// Gets the list of all variables registered in this storage.
@@ -16,6 +16,7 @@ namespace Damdor.Vario
         public IReadOnlyList<VarioVariable> Variables => variables;
         
         [SerializeReference] private List<VarioVariable> variables = new();
+        private Dictionary<string, VarioVariable> lookupCache;
 
         /// <summary>
         /// Retrieves the value of a variable by name.
@@ -26,8 +27,30 @@ namespace Damdor.Vario
         /// <returns>The value of the variable, or the default value if not found.</returns>
         public T Get<T>(string name, T defaultValue = default)
         {
+            AssertNameIsNotNull(name);
             var variable = GetVariableImpl<T>(name);
             return variable == null ? defaultValue : variable.Value;
+        }
+        
+        /// <summary>
+        /// Attempts to retrieve the value of a variable by name.
+        /// </summary>
+        /// <typeparam name="T">The type of the variable to retrieve.</typeparam>
+        /// <param name="name">The name of the variable.</param>
+        /// <param name="value">The variable value if found; otherwise, the default value.</param>
+        /// <returns>True if the variable was found and is of type T; otherwise, false.</returns>
+        public bool TryGet<T>(string name, out T value)
+        {
+            AssertNameIsNotNull(name);
+            var variable = GetVariableImpl<T>(name);
+            if (variable != null)
+            {
+                value = variable.Value;
+                return true;
+            }
+
+            value = default;
+            return false;
         }
         
         /// <summary>
@@ -38,6 +61,7 @@ namespace Damdor.Vario
         /// <returns>True if the variable exists, otherwise false.</returns>
         public bool Contains<T>(string name)
         {
+            AssertNameIsNotNull(name);
             return GetVariableImpl<T>(name) != null;
         }
         
@@ -48,6 +72,7 @@ namespace Damdor.Vario
         /// <returns>True if the variable exists, otherwise false.</returns>
         public bool Contains(string name)
         {
+            AssertNameIsNotNull(name);
             return GetVariableImpl(name) != null;
         }
 
@@ -58,6 +83,7 @@ namespace Damdor.Vario
         /// <returns>The type of the variable if found; otherwise, null.</returns>
         public Type GetType(string name)
         {
+            AssertNameIsNotNull(name);
             return GetVariableImpl(name)?.Type;
         }
         
@@ -69,10 +95,10 @@ namespace Damdor.Vario
         /// <param name="value">The new value to set.</param>
         public void Update<T>(string name, T value)
         {
+            AssertNameIsNotNull(name);
             var variable = GetVariableImpl(name);
-            var typedVariable = variable as VarioVariable<T>;
-            
-            if (typedVariable == null)
+
+            if (variable is not VarioVariable<T> typedVariable)
             {
                 var newVariable = VarioPooling.PopVariable<T>();
                 newVariable.Name = name;
@@ -86,12 +112,12 @@ namespace Damdor.Vario
                     Remove(name, out var index);
                     variables.Insert(index, newVariable);
                 }
+                UpdateLookupCache(newVariable);
             } 
             else
             {
-                typedVariable.Value = value; 
+                typedVariable.Value = value;
             }
-
         }
         
         /// <summary>
@@ -100,10 +126,12 @@ namespace Damdor.Vario
         /// <param name="variable">Variable to clone</param>
         public void Update(VarioVariable variable)
         {
+            EnsureLookupCache();
             Remove(variable.Name, out var index);
             var newVariable = variable.Clone();
             if(index < 0) variables.Add(newVariable);
             else variables.Insert(index, newVariable);
+            UpdateLookupCache(newVariable);
         }
 
         /// <summary>
@@ -113,6 +141,8 @@ namespace Damdor.Vario
         /// <returns>True if the variable was found and removed, otherwise false.</returns>
         public bool Remove(string name)
         {
+            AssertNameIsNotNull(name);
+            EnsureLookupCache();
             Remove(name, out var index);
             return index >= 0;
         }
@@ -124,9 +154,14 @@ namespace Damdor.Vario
         public VarioStorage Clone()
         {
             var storage = VarioPooling.PopStorage();
+            storage.Clear();
+            storage.EnsureLookupCache();
             foreach (var variable in variables)
             {
-                storage.variables.Add(variable.Clone());
+                if(variable == null) continue;
+                var clone = variable.Clone();
+                storage.variables.Add(clone);
+                storage.lookupCache[clone.Name] = clone;
             }
 
             return storage;
@@ -151,53 +186,54 @@ namespace Damdor.Vario
         }
 
         /// <summary>
-        /// Clears all variables from the storage, releasing them back to the pooling system
-        /// and resetting the internal collection.
+        /// Clears all variables from the storage and resetting the internal collection.
         /// </summary>
         public void Clear()
         {
-            foreach (var variable in variables) VarioPooling.ReleaseVariable(variable);
             variables.Clear();
+            lookupCache?.Clear();
         }
 
         public void CopyFrom(VarioStorage other)
         {
             if (other == null || other == this) return;
-            foreach (var variable in other.variables) Update(variable);
+            foreach (var variable in other.variables)
+            {
+                if(variable != null) Update(variable);
+            }
         }
 
         internal void Reset()
         {
+            foreach (var variable in variables) VarioPooling.ReleaseVariable(variable);
             Clear();
         }
         
         private VarioVariable<T> GetVariableImpl<T>(string name)
         {
-            foreach (var variable in variables)
-            {
-                if (variable is VarioVariable<T> typedVariable && variable.Name == name) return typedVariable;
-            }
+            var variable = GetVariableImpl(name);
+            if (variable is VarioVariable<T> typedVariable) return typedVariable;
 
             return null;
         }
         
         private VarioVariable GetVariableImpl(string name)
         {
-            foreach (var variable in variables)
-            {
-                if (variable.Name == name) return variable;
-            }
-
-            return null;
+            EnsureLookupCache();
+            lookupCache.TryGetValue(name, out var variable);
+            return variable;
         }
         
         private void Remove(string name, out int index)
         {
+            AssertNameIsNotNull(name);
+            EnsureLookupCache();
             for (var i = 0; i < variables.Count; i++)
             {
                 if (variables == null || variables[i].Name != name) continue;
                 var variable = variables[i];
                 variables.RemoveAt(i);
+                lookupCache.Remove(name);
                 VarioPooling.ReleaseVariable(variable);
                 index = i;
                 return;
@@ -206,5 +242,44 @@ namespace Damdor.Vario
             index = -1;
         }
 
+        private void AssertNameIsNotNull(string name)
+        {
+            if(name == null) throw new ArgumentNullException(nameof(name));
+        }
+        
+        private void UpdateLookupCache(VarioVariable variable)
+        {
+            EnsureLookupCache();
+            lookupCache[variable.Name] = variable;
+        }
+        
+        private void EnsureLookupCache()
+        {
+            if (lookupCache == null) RebuildLookupCache();
+        }
+        
+        private void RebuildLookupCache()
+        {
+            lookupCache ??= new Dictionary<string, VarioVariable>();
+            lookupCache.Clear();
+
+            foreach (var variable in variables)
+            {
+                if (variable != null && variable.Name != null)
+                {
+                    lookupCache[variable.Name] = variable;
+                }
+            }
+        }
+        
+        void ISerializationCallbackReceiver.OnBeforeSerialize()
+        {
+        }
+
+        void ISerializationCallbackReceiver.OnAfterDeserialize()
+        {
+            RebuildLookupCache();
+        }
+        
     }
 }

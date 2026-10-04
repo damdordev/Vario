@@ -177,8 +177,51 @@ namespace Damdor.Vario.Tests
             Assert.That(storage.GetType("DynamicVar"), Is.EqualTo(typeof(string)));
             Assert.That(storage.Variables.Count, Is.EqualTo(1));
         }
-        
-        
-        
+
+        [Test]
+        public void Update_Variable_ClonesVariable_AndDoesNotReflectFurtherChanges()
+        {
+            var variable = new VarioVariable<int>
+            {
+                Name = "OriginalVar",
+                Value = 100
+            };
+
+            storage.Update(variable);
+
+            Assert.That(storage.Contains<int>("OriginalVar"), Is.True);
+            Assert.That(storage.Get<int>("OriginalVar"), Is.EqualTo(100));
+            Assert.That(storage.Variables[0], Is.Not.SameAs(variable));
+
+            variable.Value = 999;
+            variable.Name = "ModifiedName";
+
+            Assert.That(storage.Get<int>("OriginalVar"), Is.EqualTo(100));
+            Assert.That(storage.Contains("ModifiedName"), Is.False);
+            Assert.That(storage.Variables[0].Name, Is.EqualTo("OriginalVar"));
+            Assert.That(((VarioVariable<int>)storage.Variables[0]).Value, Is.EqualTo(100));
+        }
+
+        [Test]
+        public void Update_Variable_ClonesVariable_WhenUpdatingExistingVariable_AndDoesNotReflectFurtherChanges()
+        {
+            storage.Update("ExistingVar", 10);
+
+            var updatedVariable = new VarioVariable<int>
+            {
+                Name = "ExistingVar",
+                Value = 20
+            };
+
+            storage.Update(updatedVariable);
+
+            Assert.That(storage.Get<int>("ExistingVar"), Is.EqualTo(20));
+            Assert.That(storage.Variables[0], Is.Not.SameAs(updatedVariable));
+
+            updatedVariable.Value = 50;
+
+            Assert.That(storage.Get<int>("ExistingVar"), Is.EqualTo(20));
+            Assert.That(((VarioVariable<int>)storage.Variables[0]).Value, Is.EqualTo(20));
+        }
     }
 }
