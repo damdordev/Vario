@@ -3,11 +3,25 @@ using UnityEngine;
 
 namespace Damdor.Vario
 {
+    public interface IReadonlyVarioVariable
+    {
+        Type Type { get; }
+        string Name { get; }
+        VarioVariable Clone();
+    }
+    
+    public interface IReadonlyVarioVariable<out T> : IReadonlyVarioVariable
+    {
+        Type Type { get; }
+        string Name { get; }
+        T Value { get; }
+    }
+    
     /// <summary>
     /// Base class representing a variable within the storage system.
     /// </summary>
     [Serializable]
-    public abstract class VarioVariable
+    public abstract class VarioVariable : IReadonlyVarioVariable
     {
         /// <summary>
         /// Gets the data type stored by this variable.
@@ -28,7 +42,7 @@ namespace Damdor.Vario
         public abstract VarioVariable Clone();
         
         internal abstract void Reset();
-        internal abstract void TryCopyFrom(VarioVariable variable);
+        internal abstract void TryCopyFrom(IReadonlyVarioVariable variable);
     }
 
     /// <summary>
@@ -36,7 +50,7 @@ namespace Damdor.Vario
     /// </summary>
     /// <typeparam name="T">The type of the value being stored.</typeparam>
     [Serializable]
-    public class VarioVariable<T> : VarioVariable
+    public class VarioVariable<T> : VarioVariable, IReadonlyVarioVariable<T> 
     {
         public override Type Type => typeof(T);
 
@@ -75,7 +89,7 @@ namespace Damdor.Vario
             Value = default;
         }
         
-        internal override void TryCopyFrom(VarioVariable variable)
+        internal override void TryCopyFrom(IReadonlyVarioVariable variable)
         {
             if (variable is VarioVariable<T> typedVariable)
             {

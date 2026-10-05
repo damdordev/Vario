@@ -13,7 +13,7 @@ namespace Damdor.Vario
         /// <summary>
         /// Gets the list of all variables registered in this storage.
         /// </summary>
-        public IReadOnlyList<VarioVariable> Variables => variables;
+        public IReadOnlyList<IReadonlyVarioVariable> Variables => variables;
         
         [SerializeReference] private List<VarioVariable> variables = new();
         private Dictionary<string, VarioVariable> lookupCache;
@@ -126,7 +126,7 @@ namespace Damdor.Vario
         /// Updates the value of a variable by cloning passed variable.
         /// </summary>
         /// <param name="variable">Variable to clone</param>
-        public void Update(VarioVariable variable)
+        public void Update(IReadonlyVarioVariable variable)
         {
             EnsureLookupCache();
             if(variable == null) throw new ArgumentNullException(nameof(variable));
@@ -181,7 +181,7 @@ namespace Damdor.Vario
             storage.EnsureLookupCache();
             foreach (var variable in variables)
             {
-                if(variable == null) continue;
+                if(variable == null || variable.Name == null) continue;
                 var clone = variable.Clone();
                 storage.variables.Add(clone);
                 storage.lookupCache[clone.Name] = clone;

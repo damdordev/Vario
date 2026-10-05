@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using UnityEditor;
 
@@ -9,80 +10,116 @@ namespace Damdor.Vario.Editor
     {
         public static Type GetPropertyType(SerializedProperty property)
         {
-            var parentType = property.serializedObject.targetObject.GetType();
-    
+            if (property == null || property.serializedObject == null)
+                return null;
+
+            var targetObject = property.serializedObject.targetObject;
+            if (targetObject == null)
+                return null;
+
+            var currentType = targetObject.GetType();
+            object currentObject = targetObject;
+
             var path = property.propertyPath.Replace(".Array.data[", "[");
             var elements = path.Split('.');
-    
-            var currentType = parentType;
-            object currentObject = property.serializedObject.targetObject;
-    
+
             foreach (var element in elements)
             {
                 if (element.Contains("["))
                 {
-                    var startIndex = element.IndexOf("[", StringComparison.Ordinal);
-                    var endIndex = element.IndexOf("]", StringComparison.Ordinal);
-                    var name = element[..startIndex];
-                    var index = int.Parse(element[(startIndex+1)..endIndex]);
-                    var field = GetFieldRecursive(currentType, name);
-                    if (field == null) return null;
+                    var bracketStart = element.IndexOf('[', StringComparison.Ordinal);
+                    var bracketEnd = element.IndexOf(']', StringComparison.Ordinal);
+                    var fieldName = element[..bracketStart];
+
+                    if (!int.TryParse(element[(bracketStart + 1)..bracketEnd], out var index))
+                        return null;
+
+                    var field = GetFieldRecursive(currentType, fieldName);
+                    if (field == null)
+                        return null;
 
                     if (currentObject != null)
                     {
-                        if (field.FieldType.IsArray)
+                        var containerValue = field.GetValue(currentObject);
+                        if (containerValue is Array array && index >= 0 && index < array.Length)
                         {
-                            var array = (Array)field.GetValue(currentObject);
-                            if(array == null || array.Length <= index || array.GetValue(index) == null) currentObject = null;
-                            else
-                            {
-                                currentObject = array.GetValue(index);
-                                currentType = currentObject.GetType();
-                            }
+                            currentObject = array.GetValue(index);
+                        }
+                        else if (containerValue is IList list && index >= 0 && index < list.Count)
+                        {
+                            currentObject = list[index];
                         }
                         else
                         {
-                            var list = (IList)field.GetValue(currentObject);
-                            if(list == null || list.Count <= index || list[index] == null) currentObject = null;
-                            else
-                            {
-                                currentObject = list[index];
-                                currentType = currentObject.GetType();
-                            }
+                            currentObject = null;
                         }
                     }
 
-                    if (currentObject != null) continue;
                     if (currentObject != null)
                     {
-                        currentObject = field.GetValue(currentObject);
-                        if (currentObject != null) currentType = currentObject.GetType();
+                        currentType = currentObject.GetType();
                     }
-
-                    if (currentObject == null)
+                    else
                     {
-                        currentType = field.FieldType.IsArray
-                            ? field.FieldType.GetElementType()
-                            : field.FieldType.GetGenericArguments()[0];
+                        currentType = GetCollectionElementType(field.FieldType);
                     }
                 }
                 else
                 {
                     var field = GetFieldRecursive(currentType, element);
-                    if (field == null) return null;
-                    currentType = field.FieldType;
+                    if (field == null)
+                        return null;
+
+                    currentObject = currentObject != null ? field.GetValue(currentObject) : null;
+                    currentType = currentObject != null ? currentObject.GetType() : field.FieldType;
+                }
+
+                if (currentType == null)
+                    return null;
+            }
+
+            return currentType;
+        }
+
+        private static Type GetCollectionElementType(Type type)
+        {
+            if (type == null)
+                return null;
+
+            if (type.IsArray)
+                return type.GetElementType();
+
+            var current = type;
+            while (current != null && current != typeof(object))
+            {
+                if (current.IsGenericType)
+                {
+                    var genericArgs = current.GetGenericArguments();
+                    if (genericArgs.Length > 0)
+                        return genericArgs[0];
+                }
+                current = current.BaseType;
+            }
+
+            foreach (var iface in type.GetInterfaces())
+            {
+                if (iface.IsGenericType && iface.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+                {
+                    return iface.GetGenericArguments()[0];
                 }
             }
-    
-            return currentType;
+
+            return typeof(object);
         }
 
         private static FieldInfo GetFieldRecursive(Type type, string fieldName)
         {
-            while (type != null)
+            const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance;
+            while (type != null && type != typeof(object))
             {
-                var field = type.GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-                if (field != null) return field;
+                var field = type.GetField(fieldName, flags);
+                if (field != null)
+                    return field;
                 type = type.BaseType;
             }
             return null;

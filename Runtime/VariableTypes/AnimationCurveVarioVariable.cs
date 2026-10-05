@@ -15,7 +15,7 @@ namespace Damdor.Vario
             return variable;
         }
 
-        internal override void TryCopyFrom(VarioVariable variable)
+        internal override void TryCopyFrom(IReadonlyVarioVariable variable)
         {
             if (variable is AnimationCurveVarioVariable typedVariable)
             {

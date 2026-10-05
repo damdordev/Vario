@@ -17,14 +17,14 @@ namespace Damdor.Vario
         {
             if (mainStorage != null)
             {
-                if (TryEvaluate<T>(mainStorage.Variables, name, out var result)) return result;
+                if(mainStorage.TryGet<T>(name, out var result)) return result;
             }
 
             if (!useGlobalStorages) return defaultValue;
 
             foreach (var storage in VarioSettings.GlobalStorages)
             {
-                if (storage != null && TryEvaluate<T>(storage.Variables, name, out var result)) return result;
+                if (storage != null && storage.TryGet<T>(name, out var result)) return result;
             }
 
             return defaultValue;
