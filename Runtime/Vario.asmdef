@@ -27,11 +27,6 @@
             "name": "com.coffee.ui-effect",
             "expression": "",
             "define": "DAMDOR_VARIO_UIEFFECT"
-        },
-        {
-            "name": "com.unity.modules.uielements",
-            "expression": "",
-            "define": "DAMDOR_VARIO_UI_ELEMENTS"
         }
     ],
     "noEngineReferences": false
