@@ -17,6 +17,7 @@ namespace Damdor.Vario
         
         [SerializeReference] private List<VarioVariable> variables = new();
         private Dictionary<string, VarioVariable> lookupCache;
+        private bool isReleased;
 
         /// <summary>
         /// Retrieves the value of a variable by name.
@@ -204,6 +205,8 @@ namespace Damdor.Vario
         /// </remarks>
         public void Release()
         {
+            if (isReleased) return;
+            isReleased = true;
             VarioPooling.ReleaseStorage(this);
         }
 
@@ -229,6 +232,11 @@ namespace Damdor.Vario
         {
             foreach (var variable in variables) VarioPooling.ReleaseVariable(variable);
             Clear();
+        }
+
+        internal void OnGetFromPool()
+        {
+            isReleased = false;
         }
         
         private VarioVariable<T> GetVariableImpl<T>(string name)

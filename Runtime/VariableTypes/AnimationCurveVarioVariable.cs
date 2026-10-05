@@ -7,7 +7,7 @@ namespace Damdor.Vario
     [VarioVariable("AnimationCurve")]
     public class AnimationCurveVarioVariable : VarioVariable<AnimationCurve>
     {
-        internal override VarioVariable Clone()
+        public override VarioVariable Clone()
         {
             var variable = VarioPooling.PopVariable<AnimationCurve>();
             variable.Name = Name;

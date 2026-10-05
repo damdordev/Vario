@@ -73,9 +73,11 @@ namespace Damdor.Vario
         /// </summary>
         public static VarioStorage PopStorage()
         {
-            return storagePool.Count == 0
+            var storage = storagePool.Count == 0
                 ? new VarioStorage()
                 : storagePool.Pop();
+            storage.OnGetFromPool();
+            return storage;
         }
         
         /// <summary>

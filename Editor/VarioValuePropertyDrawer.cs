@@ -125,7 +125,7 @@ namespace Damdor.Vario.Editor
             {
                 property.serializedObject.ApplyModifiedProperties();
             }
-            
+            EditorGUI.EndProperty();
         }
 
         private static string[] GetVariables(SerializedProperty property)

@@ -18,8 +18,15 @@ namespace Damdor.Vario
         /// Gets or sets the unique name identifying the variable.
         /// </summary>
         public abstract string Name { get; set; }
-
-        internal abstract VarioVariable Clone();
+        
+        /// <summary>
+        /// Creates an instance of the variable with the same name and value as the current instance.
+        /// </summary>
+        /// <returns>
+        /// A new <see cref="VarioVariable"/> instance that is a clone of the current instance.
+        /// </returns>
+        public abstract VarioVariable Clone();
+        
         internal abstract void Reset();
         internal abstract void TryCopyFrom(VarioVariable variable);
     }
@@ -45,12 +52,21 @@ namespace Damdor.Vario
             set => name = value;
         }
 
-        internal override VarioVariable Clone()
+        public override VarioVariable Clone()
         {
             var variable = VarioPooling.PopVariable<T>();
             variable.Name = Name;
             variable.Value = Value;
             return variable;
+        }
+
+        /// <summary>
+        /// Copies the name and value from the specified variable to the current instance.
+        /// </summary>
+        /// <param name="other">The variable from which to copy the name and value.</param>
+        public void CopyFrom(VarioVariable<T> other)
+        {
+            TryCopyFrom(other);
         }
 
         internal override void Reset()

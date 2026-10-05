@@ -39,7 +39,7 @@ namespace Damdor.Vario
         public static int VariablePoolSize
         {
             get => VarioPooling.VariablePoolSize;
-            set => VarioPooling.VariablePoolSize = value;
+            set => VarioPooling.VariablePoolSize = Math.Max(0, value);
         }
         
         /// <summary>
@@ -50,7 +50,7 @@ namespace Damdor.Vario
         public static int StoragePoolSize
         {
             get => VarioPooling.StoragePoolSize;
-            set => VarioPooling.StoragePoolSize = value;
+            set => VarioPooling.StoragePoolSize = Math.Max(0, value);
         }
         
         private static readonly List<Type> supportedTypes = new();
