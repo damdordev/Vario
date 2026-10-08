@@ -42,7 +42,7 @@ namespace Damdor.Vario
         /// <value>The raw value of type <typeparamref name="T"/> used when <see cref="Source"/> is set to <c>Raw</c>.</value>
         public T Value
         {
-            get => value;
+            get => value is UnityEngine.Object unityObject && unityObject == null ? default : value;
             set  => this.value = value;
         }
 
