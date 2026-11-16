@@ -81,10 +81,12 @@ namespace Damdor.Vario.Editor
                 var types = VarioSettings.SupportedTypes.OrderBy(VarioSettings.GetVariableName).ToList();
                 new HierarchicalDropdown<Type>(types, VarioSettings.GetVariableName, type =>
                 {
+                    property.serializedObject.Update();
                     property.InsertArrayElementAtIndex(property.arraySize);
                     var element = property.GetArrayElementAtIndex(property.arraySize - 1);
                     element.managedReferenceValue = Activator.CreateInstance(type);
                     property.serializedObject.ApplyModifiedProperties();
+                    property.serializedObject.Update();
                 }).Show(new Rect(rect.x - 100, rect.y, rect.width, rect.height));
             };
             
